@@ -6,6 +6,7 @@ bun.lockb
 
 # Expo
 .expo/
+.vscode/
 dist/
 web-build/
 expo-env.d.ts
