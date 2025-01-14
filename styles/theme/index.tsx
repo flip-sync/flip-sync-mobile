@@ -19,6 +19,7 @@ export type ThemeType = {
     gray8:string;
     black:string;
     white:string;
+    red:string;
     primary:string;
     primaryLight:string;
 
@@ -38,6 +39,7 @@ const themeColors: Record<"light" | "dark", Omit<ThemeType, "isDark" | "appearan
         gray8: "#F5F6F6",
         black: "#000000",
         white: "#ffffff",
+        red:"#B3261E",
         primary:'#4EC0E9',
         primaryLight:'#EAF2FD',
     },
@@ -52,6 +54,7 @@ const themeColors: Record<"light" | "dark", Omit<ThemeType, "isDark" | "appearan
         gray8: "#F5F6F6",
         black: "#000000",
         white: "#ffffff",
+        red:"#B3261E",
         primary:'#4EC0E9',
         primaryLight:'#EAF2FD',
     }
