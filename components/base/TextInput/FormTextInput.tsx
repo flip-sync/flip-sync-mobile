@@ -185,7 +185,7 @@ const FormInput = forwardRef<FormTextInputRef, FormTextInputProps>(
                                         ? theme.white
                                         : theme.white
                             },
-                            hasBorder && { borderWidth: FlipStyles.adjustScale(1.5), borderColor }
+                            hasBorder && { borderWidth: FlipStyles.adjustScale(1), borderColor }
                         ]}
                     >
                         {/* {isSearch && (
@@ -256,17 +256,10 @@ const styles = StyleSheet.create({
         paddingVertical: FlipStyles.adjustScale(6)
     },
     textContainer: {
-        paddingVertical: FlipStyles.adjustScaleHeight(13),
+        backgroundColor:'#000000',
+        paddingVertical: FlipStyles.adjustScale(13),
         paddingHorizontal: FlipStyles.adjustScale(24),
         borderRadius: FlipStyles.adjustScale(8)
-    },
-    textInput: {
-        flex: 1,
-        fontSize: FlipStyles.adjustScale(17),
-        lineHeight: FlipStyles.adjustScale(22),
-        padding: 0,
-        margin: 0,
-        fontFamily: "Pretendard-Medium"
     },
     subActionIconContainer: {
         marginLeft: FlipStyles.adjustScale(24)
