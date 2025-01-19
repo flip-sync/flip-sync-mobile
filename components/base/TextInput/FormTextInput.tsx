@@ -156,7 +156,7 @@ const FormInput = forwardRef<FormTextInputRef, FormTextInputProps>(
         return (
             <View style={containerStyle} pointerEvents={inputPointerEventsNone}>
                 {!!label && (
-                    <DefaultText Body2 weight={"600"} containerStyle={styles.labelContainer}>
+                    <DefaultText Button3 weight={"400"} color={theme.gray5} containerStyle={styles.labelContainer}>
                         {label}
                         {(isOptional || isRequired) && (
                             <Text
@@ -182,7 +182,7 @@ const FormInput = forwardRef<FormTextInputRef, FormTextInputProps>(
                             {
                                 backgroundColor:
                                     !isError && !isFocused && hasBorder && !isDefaultReverseStyle
-                                        ? theme.gray7
+                                        ? theme.white
                                         : theme.white
                             },
                             hasBorder && { borderWidth: FlipStyles.adjustScale(1.5), borderColor }
@@ -256,14 +256,14 @@ const styles = StyleSheet.create({
         paddingVertical: FlipStyles.adjustScale(6)
     },
     textContainer: {
-        paddingVertical: FlipStyles.adjustScale(12.5),
-        paddingHorizontal: FlipStyles.adjustScale(16),
+        paddingVertical: FlipStyles.adjustScaleHeight(13),
+        paddingHorizontal: FlipStyles.adjustScale(24),
         borderRadius: FlipStyles.adjustScale(8)
     },
     textInput: {
         flex: 1,
-        fontSize: FlipStyles.adjustScale(18),
-        height: FlipStyles.adjustScale(24),
+        fontSize: FlipStyles.adjustScale(17),
+        lineHeight: FlipStyles.adjustScale(22),
         padding: 0,
         margin: 0,
         fontFamily: "Pretendard-Medium"

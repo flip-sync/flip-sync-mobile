@@ -24,7 +24,11 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [loaded, error] = useFonts({
-    Pretendard: require('../assets/fonts/Pretendard-Regular.ttf'),
+    'Pretendard-Regular': require('../assets/fonts/Pretendard-Regular.ttf'),
+    'Pretendard-Medium': require('../assets/fonts/Pretendard-Medium.ttf'),
+    'Pretendard-SemiBold': require('../assets/fonts/Pretendard-SemiBold.ttf'),
+    'Pretendard-ExtraBold': require('../assets/fonts/Pretendard-ExtraBold.ttf'),
+    'Pretendard-Bold': require('../assets/fonts/Pretendard-Bold.ttf'),
     ...FontAwesome.font,
   });
   Dimensions.addEventListener("change", status => {

@@ -21,7 +21,7 @@ export type tFeedbackStyle = {
 
 const DefaultInput = forwardRef<TextInput, TextInputProps>((props,ref)=>{
     return (
-        <TextInput 
+        <TextInput             
             ref={ref}
             style={[styles.textInput,props.style]}
             {...props}
@@ -40,8 +40,8 @@ const styles = StyleSheet.create({
     },
     textInput: {
         flex: 1,
-        fontSize: FlipStyles.adjustScale(18),
-        height: FlipStyles.adjustScale(24),
+        fontSize: FlipStyles.adjustScale(17),
+        height: FlipStyles.adjustScale(21),
         padding: 0,
         margin: 0,
         fontFamily: "Pretendard-Medium"

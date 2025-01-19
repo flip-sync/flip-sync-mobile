@@ -28,17 +28,17 @@ export type FontSizeType = {
     Label?: boolean;
 };
 
-export type CBTextFontWeightType = keyof typeof FONT_WEIGHT;
+export type DefaultTextFontWeightType = keyof typeof FONT_WEIGHT;
 
-export type CBTextProps = FontSizeType & {
+export type DefaultTextProps = FontSizeType & {
     color?: string;
-    weight?: CBTextFontWeightType;
+    weight?: DefaultTextFontWeightType;
     fontFamily?: string;
     containerStyle?: StyleProp<ViewStyle>;
     style?: TextStyle;
 } & Partial<TextProps>;
 
-const DefaultText: React.FC<CBTextProps> = ({
+const DefaultText: React.FC<DefaultTextProps> = ({
     color,
     weight,
     fontFamily,
