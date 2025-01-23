@@ -1,13 +1,23 @@
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
-import DefaultInput, {  tFeedbackStyle, tInputFeedback } from ".";
+import DefaultInput, { tFeedbackStyle, tInputFeedback } from ".";
 import { useFlipTheme } from "@/common";
-import { StyleProp, StyleSheet, Text, TextInput, TextInputProps, TouchableOpacity, TouchableWithoutFeedback, View, ViewStyle } from "react-native";
+import {
+    StyleProp,
+    StyleSheet,
+    Text,
+    TextInput,
+    TextInputProps,
+    TouchableOpacity,
+    TouchableWithoutFeedback,
+    View,
+    ViewStyle
+} from "react-native";
 import DefaultText, { FONT_WEIGHT } from "../Text";
 import FlipStyles from "@/styles";
 import RowView from "../RowView";
 
 export type FormTextInputProps = {
-    value: string;
+    value?: string;
     label?: string;
     placeholder?: string;
     unit?: string;
@@ -31,7 +41,6 @@ export type FormTextInputProps = {
     onFocus?: () => void;
     onBlur?: () => void;
 } & TextInputProps;
-
 
 export type FormTextInputRef = {
     focus: () => void;
@@ -185,7 +194,7 @@ const FormInput = forwardRef<FormTextInputRef, FormTextInputProps>(
                                         ? theme.white
                                         : theme.white
                             },
-                            hasBorder && { borderWidth: FlipStyles.adjustScale(1), borderColor }
+                            hasBorder && { borderWidth: FlipStyles.adjustScale(1.5), borderColor }
                         ]}
                     >
                         {/* {isSearch && (
@@ -197,11 +206,17 @@ const FormInput = forwardRef<FormTextInputRef, FormTextInputProps>(
                             value={value}
                             onChangeText={onChangeText}
                             placeholder={placeholder}
+                            textContentType="emailAddress"
                             placeholderTextColor={theme.gray7}
                             style={[
                                 {
-                                    fontFamily: value ? "Pretendard-Medium" : "Pretendard-Regular",
-                                    color: theme.gray2
+                                    // fontFamily: value ? "Pretendard-Medium" : "Pretendard-Regular",
+                                    color: theme.gray2,
+                                    textDecorationLine: "none",
+                                    fontSize: FlipStyles.adjustScale(17),
+                                    lineHeight: FlipStyles.adjustScale(22),
+                                    padding: 0,
+                                    margin: 0
                                 },
                                 style
                             ]}
@@ -224,6 +239,7 @@ const FormInput = forwardRef<FormTextInputRef, FormTextInputProps>(
                         {value && hasClearButton && isFocused && (
                             <TouchableOpacity onPress={onClearPress} style={styles.subActionIconContainer}>
                                 {/* <FlipIcon icon={"icon-remove-gray-24"} size={24} /> */}
+                                <Text>삭제</Text>
                             </TouchableOpacity>
                         )}
 
@@ -256,7 +272,7 @@ const styles = StyleSheet.create({
         paddingVertical: FlipStyles.adjustScale(6)
     },
     textContainer: {
-        backgroundColor:'#000000',
+        backgroundColor: "#000000",
         paddingVertical: FlipStyles.adjustScale(13),
         paddingHorizontal: FlipStyles.adjustScale(24),
         borderRadius: FlipStyles.adjustScale(8)
