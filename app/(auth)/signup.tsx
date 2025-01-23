@@ -1,29 +1,49 @@
-import { StyleSheet ,Text, View } from 'react-native';
-
+import { useFlipTheme } from "@/common";
+import FormInput from "@/components/base/TextInput/FormTextInput";
+import FlipStyles from "@/styles";
+import { useState } from "react";
+import { StyleSheet, Text, View } from "react-native";
 
 export default function SignUp() {
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Tab Two</Text>
-      <View style={styles.separator}  />
-     <Text>app/(tabs)/index.tsx</Text>
-    </View>
-  );
+    const theme = useFlipTheme();
+
+    const [email, setEmail] = useState("");
+    return (
+        <View
+            style={[
+                styles.container,
+                {
+                    backgroundColor: theme.white
+                }
+            ]}
+        >
+            <View style={styles.wrapper}>
+                <FormInput
+                    placeholder="example@flipsync.co.kr"
+                    value={email}
+                    onChangeText={v => setEmail(v)}
+                    label="아이디"
+                    hasClearButton
+                    onClearPress={() => setEmail("")}
+                    autoCapitalize="none"
+                />
+            </View>
+        </View>
+    );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  separator: {
-    marginVertical: 30,
-    height: 1,
-    width: '80%',
-  },
+    container: {
+        flex: 1,
+        alignItems: "center",
+        justifyContent: "center"
+    },
+    wrapper: {
+        flex: 1,
+        paddingTop: FlipStyles.adjustScale(32),
+        width: "100%",
+        maxWidth: FlipStyles.adjustScale(417),
+        paddingHorizontal: FlipStyles.adjustScale(24),
+        gap: FlipStyles.adjustScale(16)
+    }
 });

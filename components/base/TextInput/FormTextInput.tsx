@@ -184,7 +184,7 @@ const FormInput = forwardRef<FormTextInputRef, FormTextInputProps>(
                 )}
 
                 <TouchableWithoutFeedback onPress={() => textInputRef.current?.focus()}>
-                    <RowView
+                    {/* <RowView
                         style={[
                             styles.textContainer,
                             textContainerStyle,
@@ -197,10 +197,25 @@ const FormInput = forwardRef<FormTextInputRef, FormTextInputProps>(
                             hasBorder && { borderWidth: FlipStyles.adjustScale(1.5), borderColor }
                         ]}
                     >
-                        {/* {isSearch && (
+                        {isSearch && (
                             <FlipIcon icon={"icon-search-24"} size={24} containerStyle={styles.searchIconContainer} />
-                        )} */}
+                        )}
 
+                       
+                    </RowView> */}
+                    <View
+                        style={[
+                            styles.textContainer,
+                            textContainerStyle,
+                            {
+                                backgroundColor:
+                                    !isError && !isFocused && hasBorder && !isDefaultReverseStyle
+                                        ? theme.white
+                                        : theme.white
+                            },
+                            hasBorder && { borderWidth: FlipStyles.adjustScale(1.5), borderColor }
+                        ]}
+                    >
                         <DefaultInput
                             ref={textInputRef}
                             value={value}
@@ -210,9 +225,11 @@ const FormInput = forwardRef<FormTextInputRef, FormTextInputProps>(
                             placeholderTextColor={theme.gray7}
                             style={[
                                 {
-                                    // fontFamily: value ? "Pretendard-Medium" : "Pretendard-Regular",
+                                    fontFamily: value ? "Pretendard-Medium" : "Pretendard-Regular",
+                                    width: "80%",
                                     color: theme.gray2,
                                     textDecorationLine: "none",
+                                    height: FlipStyles.adjustScale(22),
                                     fontSize: FlipStyles.adjustScale(17),
                                     lineHeight: FlipStyles.adjustScale(22),
                                     padding: 0,
@@ -225,30 +242,40 @@ const FormInput = forwardRef<FormTextInputRef, FormTextInputProps>(
                             {...props}
                         />
 
-                        {unit && (
-                            <DefaultText Button3 weight={"400"} color={theme.gray5} style={styles.unitContainer}>
-                                {unit}
-                            </DefaultText>
-                        )}
-                        {time && (
-                            <DefaultText Button3 weight={"500"} color={theme.red} style={styles.timeContainer}>
-                                {time}
-                            </DefaultText>
-                        )}
+                        <View
+                            style={{
+                                position: "absolute",
+                                height: FlipStyles.adjustScale(48),
+                                justifyContent: "center",
+                                alignItems: "center",
+                                right: FlipStyles.adjustScale(24)
+                            }}
+                        >
+                            {unit && (
+                                <DefaultText Button3 weight={"400"} color={theme.gray5} style={styles.unitContainer}>
+                                    {unit}
+                                </DefaultText>
+                            )}
+                            {time && (
+                                <DefaultText Button3 weight={"500"} color={theme.red} style={styles.timeContainer}>
+                                    {time}
+                                </DefaultText>
+                            )}
 
-                        {value && hasClearButton && isFocused && (
-                            <TouchableOpacity onPress={onClearPress} style={styles.subActionIconContainer}>
-                                {/* <FlipIcon icon={"icon-remove-gray-24"} size={24} /> */}
-                                <Text>삭제</Text>
-                            </TouchableOpacity>
-                        )}
+                            {value && hasClearButton && isFocused && (
+                                <TouchableOpacity onPress={onClearPress} style={styles.subActionIconContainer}>
+                                    {/* <FlipIcon icon={"icon-remove-gray-24"} size={24} /> */}
+                                    <Text>삭제</Text>
+                                </TouchableOpacity>
+                            )}
 
-                        {value && hasList && isFocused && (
-                            <TouchableOpacity onPress={onDropDownPress} style={styles.subActionIconContainer}>
-                                {/* <FlipIcon icon={"icon-caret-down-24"} size={24} /> */}
-                            </TouchableOpacity>
-                        )}
-                    </RowView>
+                            {value && hasList && isFocused && (
+                                <TouchableOpacity onPress={onDropDownPress} style={styles.subActionIconContainer}>
+                                    {/* <FlipIcon icon={"icon-caret-down-24"} size={24} /> */}
+                                </TouchableOpacity>
+                            )}
+                        </View>
+                    </View>
                 </TouchableWithoutFeedback>
 
                 {feedback && (

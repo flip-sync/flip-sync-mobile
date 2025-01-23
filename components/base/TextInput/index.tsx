@@ -1,4 +1,4 @@
-import { forwardRef } from "react";
+import { forwardRef, memo } from "react";
 import { StyleSheet, TextInput, TextInputProps } from "react-native";
 import { tIcon } from "../imgs/FlipIcon";
 import FlipStyles from "@/styles";
@@ -12,9 +12,11 @@ export type tFeedbackStyle = {
     icon: tIcon;
 };
 
-const DefaultInput = forwardRef<TextInput, TextInputProps>((props, ref) => {
-    return <TextInput ref={ref} style={[styles.textInput, props.style]} {...props} />;
-});
+const DefaultInput = memo(
+    forwardRef<TextInput, TextInputProps>((props, ref) => {
+        return <TextInput ref={ref} style={[styles.textInput, props.style]} {...props} />;
+    })
+);
 
 const styles = StyleSheet.create({
     textInput: {

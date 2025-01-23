@@ -8,6 +8,7 @@ import DefaultButton, { PrimaryButton } from "@/components/base/Button";
 import RowView from "@/components/base/RowView";
 import DefaultText from "@/components/base/Text";
 import { useNavigation, useRouter } from "expo-router";
+import DefaultInput from "@/components/base/TextInput";
 
 export default function SignIn() {
     const theme = useFlipTheme();
@@ -47,9 +48,9 @@ export default function SignIn() {
 
                 <PrimaryButton
                     style={styles.button}
-                    disabled={email === "" || password === ""}
+                    // disabled={email === "" || password === ""}
                     onPress={() => {
-                        console.log("로그인 버튼 클릭", email, password);
+                        console.log(`로그인 버튼 클릭 ${email} ${password} `);
                     }}
                 >
                     로그인
@@ -65,7 +66,10 @@ export default function SignIn() {
                                 alignItems: "flex-end"
                             }
                         ]}
-                        onPress={() => router.push("/signup")}
+                        onPress={() => {
+                            console.log("test");
+                            router.push("/signup");
+                        }}
                     >
                         <DefaultText Button2 weight="400" color={theme.gray4}>
                             회원가입
@@ -104,6 +108,7 @@ const styles = StyleSheet.create({
     },
     wrapper: {
         width: "100%",
+        maxWidth: FlipStyles.adjustScale(417),
         paddingHorizontal: FlipStyles.adjustScale(24),
         gap: FlipStyles.adjustScale(16)
     },

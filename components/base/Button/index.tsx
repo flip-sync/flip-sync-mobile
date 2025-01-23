@@ -33,7 +33,6 @@ export const PrimaryButton = ({ children, ...props }: TouchableOpacityProps) => 
                 },
                 props.style
             ]}
-            disabled
             textColor={props.disabled ? theme.gray6 : theme.white}
         >
             {children}
