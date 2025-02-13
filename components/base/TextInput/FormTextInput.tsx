@@ -22,14 +22,17 @@ export type FormTextInputProps = {
     placeholder?: string;
     unit?: string;
     time?: string;
+    validText?: string;
     feedback?: tInputFeedback | null;
     isError?: boolean;
     isSearch?: boolean;
     isOptional?: boolean;
     isRequired?: boolean;
     hasClearButton?: boolean;
+    hasValidButton?: boolean;
     hasBorder?: boolean;
     hasList?: boolean;
+    disabled?: boolean;
     inputPointerEventsNone?: "box-none" | "none" | "box-only" | "auto";
     containerStyle?: StyleProp<ViewStyle>;
     textContainerStyle?: StyleProp<ViewStyle>;
@@ -37,6 +40,7 @@ export type FormTextInputProps = {
     style?: StyleProp<ViewStyle>;
     onChangeText?: (value: string) => void;
     onClearPress?: () => void;
+    onValidPress?: () => void;
     onDropDownPress?: () => void;
     onFocus?: () => void;
     onBlur?: () => void;
@@ -60,14 +64,17 @@ const FormInput = forwardRef<FormTextInputRef, FormTextInputProps>(
             placeholder = "",
             unit,
             time,
+            validText,
             feedback,
             isError,
             isSearch,
             isOptional = false,
             isRequired = false,
             hasClearButton,
+            hasValidButton,
             hasBorder = true,
             hasList,
+            disabled,
             inputPointerEventsNone,
             containerStyle,
             textContainerStyle,
@@ -75,6 +82,7 @@ const FormInput = forwardRef<FormTextInputRef, FormTextInputProps>(
             style,
             onChangeText,
             onClearPress,
+            onValidPress,
             onDropDownPress,
             onFocus,
             onBlur,
@@ -184,25 +192,6 @@ const FormInput = forwardRef<FormTextInputRef, FormTextInputProps>(
                 )}
 
                 <TouchableWithoutFeedback onPress={() => textInputRef.current?.focus()}>
-                    {/* <RowView
-                        style={[
-                            styles.textContainer,
-                            textContainerStyle,
-                            {
-                                backgroundColor:
-                                    !isError && !isFocused && hasBorder && !isDefaultReverseStyle
-                                        ? theme.white
-                                        : theme.white
-                            },
-                            hasBorder && { borderWidth: FlipStyles.adjustScale(1.5), borderColor }
-                        ]}
-                    >
-                        {isSearch && (
-                            <FlipIcon icon={"icon-search-24"} size={24} containerStyle={styles.searchIconContainer} />
-                        )}
-
-                       
-                    </RowView> */}
                     <View
                         style={[
                             styles.textContainer,
@@ -210,12 +199,17 @@ const FormInput = forwardRef<FormTextInputRef, FormTextInputProps>(
                             {
                                 backgroundColor:
                                     !isError && !isFocused && hasBorder && !isDefaultReverseStyle
-                                        ? theme.white
+                                        ? disabled
+                                            ? theme.gray8
+                                            : theme.white
                                         : theme.white
                             },
                             hasBorder && { borderWidth: FlipStyles.adjustScale(1.5), borderColor }
                         ]}
                     >
+                        {disabled && (
+                            <View style={[styles.disabledContainer, { backgroundColor: "transparent" }]}></View>
+                        )}
                         <DefaultInput
                             ref={textInputRef}
                             value={value}
@@ -237,6 +231,7 @@ const FormInput = forwardRef<FormTextInputRef, FormTextInputProps>(
                                 },
                                 style
                             ]}
+                            editable={!disabled}
                             onFocus={() => controlFocus(true)}
                             onBlur={() => controlFocus(false)}
                             {...props}
@@ -245,8 +240,10 @@ const FormInput = forwardRef<FormTextInputRef, FormTextInputProps>(
                         <View
                             style={{
                                 position: "absolute",
+                                gap: FlipStyles.adjustScale(8),
                                 height: FlipStyles.adjustScale(48),
                                 justifyContent: "center",
+                                flexDirection: "row",
                                 alignItems: "center",
                                 right: FlipStyles.adjustScale(24)
                             }}
@@ -264,15 +261,30 @@ const FormInput = forwardRef<FormTextInputRef, FormTextInputProps>(
 
                             {value && hasClearButton && isFocused && (
                                 <TouchableOpacity onPress={onClearPress} style={styles.subActionIconContainer}>
-                                    {/* <FlipIcon icon={"icon-remove-gray-24"} size={24} /> */}
                                     <Text>삭제</Text>
+                                </TouchableOpacity>
+                            )}
+                            {hasValidButton && !disabled && (
+                                <TouchableOpacity
+                                    onPress={onValidPress}
+                                    style={[
+                                        styles.validIconContainer,
+                                        {
+                                            backgroundColor: theme.gray8
+                                        }
+                                    ]}
+                                >
+                                    <DefaultText Button3 color={theme.gray4}>
+                                        {validText}
+                                    </DefaultText>
                                 </TouchableOpacity>
                             )}
 
                             {value && hasList && isFocused && (
-                                <TouchableOpacity onPress={onDropDownPress} style={styles.subActionIconContainer}>
-                                    {/* <FlipIcon icon={"icon-caret-down-24"} size={24} /> */}
-                                </TouchableOpacity>
+                                <TouchableOpacity
+                                    onPress={onDropDownPress}
+                                    style={styles.subActionIconContainer}
+                                ></TouchableOpacity>
                             )}
                         </View>
                     </View>
@@ -280,11 +292,6 @@ const FormInput = forwardRef<FormTextInputRef, FormTextInputProps>(
 
                 {feedback && (
                     <RowView justifyContent={"flex-start"}>
-                        {/* <FlipIcon
-                            icon={feedbackStyle?.icon ?? "icon-info-filled-16"}
-                            size={16}
-                            containerStyle={styles.feedbackIcon}
-                        /> */}
                         <DefaultText Body2 color={feedbackStyle?.color} containerStyle={styles.feedbackContainer}>
                             {feedback?.text}
                         </DefaultText>
@@ -299,13 +306,27 @@ const styles = StyleSheet.create({
         paddingVertical: FlipStyles.adjustScale(6)
     },
     textContainer: {
+        position: "relative",
         backgroundColor: "#000000",
         paddingVertical: FlipStyles.adjustScale(13),
         paddingHorizontal: FlipStyles.adjustScale(24),
         borderRadius: FlipStyles.adjustScale(8)
     },
+    disabledContainer: {
+        top: 0,
+        left: 0,
+        zIndex: 1,
+        bottom: 0,
+        right: 0,
+        position: "absolute"
+    },
     subActionIconContainer: {
         marginLeft: FlipStyles.adjustScale(24)
+    },
+    validIconContainer: {
+        paddingVertical: FlipStyles.adjustScale(4),
+        paddingHorizontal: FlipStyles.adjustScale(6),
+        borderRadius: FlipStyles.adjustScale(4)
     },
     unitContainer: {
         marginLeft: FlipStyles.adjustScale(8)

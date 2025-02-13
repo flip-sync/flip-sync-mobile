@@ -4,11 +4,12 @@ import FlipStyles from "@/styles";
 import FormInput from "@/components/base/TextInput/FormTextInput";
 import { useState } from "react";
 import { useFlipTheme } from "@/common";
-import DefaultButton, { PrimaryButton } from "@/components/base/Button";
+import { PrimaryButton } from "@/components/base/Button";
 import RowView from "@/components/base/RowView";
 import DefaultText from "@/components/base/Text";
-import { useNavigation, useRouter } from "expo-router";
-import DefaultInput from "@/components/base/TextInput";
+import { useRouter } from "expo-router";
+import { useAuth } from "@/hooks/auth";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export default function SignIn() {
     const theme = useFlipTheme();
@@ -16,6 +17,17 @@ export default function SignIn() {
 
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+
+    const { signIn } = useAuth();
+    const handlePressLogin = async () => {
+        try {
+            const result = await signIn({ email, password });
+            AsyncStorage.setItem("token", JSON.stringify(result.data));
+            router.replace("/(score)");
+        } catch (error) {
+            console.log(error);
+        }
+    };
     return (
         <View
             style={[
@@ -48,10 +60,8 @@ export default function SignIn() {
 
                 <PrimaryButton
                     style={styles.button}
-                    // disabled={email === "" || password === ""}
-                    onPress={() => {
-                        console.log(`로그인 버튼 클릭 ${email} ${password} `);
-                    }}
+                    disabled={email === "" || password === ""}
+                    onPress={handlePressLogin}
                 >
                     로그인
                 </PrimaryButton>
