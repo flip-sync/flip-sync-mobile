@@ -4,7 +4,21 @@
         "strict": true,
         "jsx": "react-jsx",
         "paths": {
-            "@/*": ["./*"]
+            "@/*": ["./*"],
+            "@/src/*": ["./src/*"],
+            "@/assets/*": ["./assets/*"],
+            "@/hooks/*": ["./hooks/*"],
+            "@/components/*": ["./components/*"],
+            "@/utils/*": ["./utils/*"],
+            "@/store/*": ["./store/*"],
+            "@/types/*": ["./types/*"],
+            "@/services/*": ["./services/*"],
+            "@/navigation/*": ["./navigation/*"],
+            "@/screens/*": ["./screens/*"],
+            "@/config/*": ["./config/*"],
+            "@/constants/*": ["./constants/*"],
+            "@/context/*": ["./context/*"],
+            "@/styles/*": ["./styles/*"]
         }
     },
     "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"],

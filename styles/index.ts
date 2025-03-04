@@ -1,4 +1,5 @@
 import { Dimensions, PixelRatio, Platform } from "react-native";
+import * as Device from "expo-device";
 
 type StylesType = {
     windowWidth: number;
@@ -24,48 +25,57 @@ type StylesType = {
         | {
               elevation: number;
           };
+    isTablet: boolean;
 };
 
 const { width, height } = Dimensions.get("window");
 let windowWidth = width;
 let windowHeight = height;
-let widthScale = windowWidth / 375 > 1.2 ? 1.2 : windowWidth / 375;
-let heightScale = windowHeight / 812;
 
+// 태블릿 여부 판별 (기본적으로 false, expo-device로 확인)
+let isTablet = Device.deviceType === Device.DeviceType.TABLET ? true : windowWidth >= 768;
+// 태블릿과 모바일에 따라 스케일 조정
+let widthScale = isTablet ? windowWidth / 600 : windowWidth / 375;
+let heightScale = isTablet ? windowHeight / 1024 : windowHeight / 812;
+
+// 스케일 조정 함수
 const adjustScale: StylesType["adjustScale"] = dp => PixelRatio.roundToNearestPixel(dp * widthScale);
 const adjustScaleHeight: StylesType["adjustScaleHeight"] = dp => PixelRatio.roundToNearestPixel(dp * heightScale);
 
+// 새로운 크기 설정 (화면 회전 대응)
 const setNewDimension = (newWidth: number, newHeight: number) => {
     windowWidth = newWidth;
     windowHeight = newHeight;
-    widthScale = newWidth / 375 > 1.2 ? 1.2 : newWidth / 375;
-    heightScale = newHeight / 812;
+    isTablet = Device.deviceType === Device.DeviceType.TABLET ? true : newWidth >= 768;
+    widthScale = isTablet ? newWidth / 600 : newWidth / 375;
+    heightScale = isTablet ? newHeight / 1024 : newHeight / 812;
 };
 
 const FlipStyles: StylesType = {
     windowHeight,
     windowWidth,
-    navigationHeaderHeight: adjustScale(64),
-    bottomButtonHeight: adjustScale(64),
-    bottomTabBarHeight: adjustScale(56),
+    isTablet,
+    navigationHeaderHeight: adjustScale(isTablet ? 80 : 64),
+    bottomButtonHeight: adjustScale(isTablet ? 72 : 64),
+    bottomTabBarHeight: adjustScale(isTablet ? 64 : 56),
     adjustScale,
     adjustScaleHeight,
     setNewDimension,
-    basePadding: adjustScale(20),
-    baseBorderRadius: adjustScale(24),
+    basePadding: adjustScale(isTablet ? 24 : 20),
+    baseBorderRadius: adjustScale(isTablet ? 28 : 24),
     ...Platform.select({
         ios: {
             baseBoxShadow: {
-                shadowRadius: adjustScale(2),
+                shadowRadius: adjustScale(isTablet ? 4 : 2),
                 shadowOffset: {
                     width: 0,
-                    height: adjustScale(-2)
+                    height: adjustScale(isTablet ? -4 : -2)
                 },
                 shadowOpacity: 1,
                 shadowColor: "rgba(0, 0, 0, 0.1)"
             }
         },
-        android: { baseBoxShadow: { elevation: adjustScale(3) } }
+        android: { baseBoxShadow: { elevation: adjustScale(isTablet ? 5 : 3) } }
     })
 };
 

@@ -2,9 +2,8 @@ import React from "react";
 
 import { ImageStyle, StyleProp, StyleSheet, View, ViewStyle } from "react-native";
 
-
 import { Image, ImageProps } from "expo-image";
-import Assets from "@/assets";
+import Assets from "@/common/assets";
 
 export type tImg = keyof (typeof Assets)["image"];
 

@@ -1,6 +1,6 @@
 const iconFolder = "assets/icons";
 const imgFolder = "assets/images";
-const iconBundleFilePath = "assets/index.ts";
+const iconBundleFilePath = "common/assets.ts";
 const fs = require("fs");
 
 const ICONS = [];
@@ -21,7 +21,7 @@ const findAssetsDepth = async (rootPath, type) => {
             const relativePath = `${rootPath}/${children.name}`.replace("src/", "");
             const fileName = relativePath.substring(relativePath.lastIndexOf("/") + 1, relativePath.lastIndexOf("."));
 
-            const imageRaw = `    "${fileName}": require("${relativePath}"),`;
+            const imageRaw = `    "${fileName}": require("../${relativePath}"),`;
 
             switch (type) {
                 case "icons":
@@ -60,8 +60,6 @@ const findAssetsDepth = async (rootPath, type) => {
             writeResultFile(`${img}\n`);
         });
         writeResultFile("};\n");
-
-       
 
         writeResultFile("const Assets = { icon, image };\nexport default Assets;\n");
 

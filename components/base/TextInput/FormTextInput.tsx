@@ -110,26 +110,6 @@ const FormInput = forwardRef<FormTextInputRef, FormTextInputProps>(
             return theme.gray7;
         }, [isError, isFocused, theme, isDefaultReverseStyle]);
 
-        const feedbackStyle = useMemo<tFeedbackStyle | undefined>(() => {
-            switch (feedback?.type) {
-                case "success":
-                    return {
-                        color: theme.gray2,
-                        icon: "icon-checked-filled-16"
-                    } as tFeedbackStyle;
-                case "info":
-                    return {
-                        color: theme.gray5,
-                        icon: "icon-info-filled-16"
-                    } as tFeedbackStyle;
-                case "error":
-                    return {
-                        color: theme.red,
-                        icon: "icon-close-filled-16"
-                    } as tFeedbackStyle;
-            }
-        }, [feedback?.type, theme.red, theme.gray5, theme.gray2]);
-
         useImperativeHandle(
             ref,
             useCallback(
@@ -292,7 +272,7 @@ const FormInput = forwardRef<FormTextInputRef, FormTextInputProps>(
 
                 {feedback && (
                     <RowView justifyContent={"flex-start"}>
-                        <DefaultText Body2 color={feedbackStyle?.color} containerStyle={styles.feedbackContainer}>
+                        <DefaultText Body2 containerStyle={styles.feedbackContainer}>
                             {feedback?.text}
                         </DefaultText>
                     </RowView>
