@@ -5,7 +5,7 @@ import * as SplashScreen from "expo-splash-screen";
 import { useEffect, useState } from "react";
 import "react-native-reanimated";
 
-import { Dimensions } from "react-native";
+import { Dimensions, SafeAreaView } from "react-native";
 import styles from "@/styles";
 import { ThemeProvider } from "@/styles/theme";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -67,22 +67,23 @@ function RootLayoutNav({ token }: { token?: string }) {
     const router = useRouter();
     useEffect(() => {
         if (!token) {
-            return router.replace("/(auth)/login");
+            return router.replace("/(auth)");
         }
         const parseToken = JSON.parse(token);
         if (parseToken.accessToken) {
-            return router.replace("/(score)");
+            return router.replace("/(score)/(tabs)");
         }
     }, [token]);
     return (
-        <QueryClientProvider client={queryClient}>
-            <ThemeProvider>
-                <Stack>
-                    <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-                    <Stack.Screen name="(score)" options={{ headerShown: false }} />
-                    <Stack.Screen name="modal" options={{ presentation: "modal" }} />
-                </Stack>
-            </ThemeProvider>
-        </QueryClientProvider>
+        <SafeAreaView style={{ flex: 1 }}>
+            <QueryClientProvider client={queryClient}>
+                <ThemeProvider>
+                    <Stack>
+                        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+                        <Stack.Screen name="(score)" options={{ headerShown: false }} />
+                    </Stack>
+                </ThemeProvider>
+            </QueryClientProvider>
+        </SafeAreaView>
     );
 }

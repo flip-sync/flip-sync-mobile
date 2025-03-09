@@ -4,6 +4,10 @@
 export const icon = {
     "icon-active-score": require("../assets/icons/icon-active-score.png"),
     "icon-active-users": require("../assets/icons/icon-active-users.png"),
+    "icon-arrow-up-down": require("../assets/icons/icon-arrow-up-down.png"),
+    "icon-back": require("../assets/icons/icon-back.png"),
+    "icon-close": require("../assets/icons/icon-close.png"),
+    "icon-plus": require("../assets/icons/icon-plus.png"),
     "icon-profile": require("../assets/icons/icon-profile.png"),
     "icon-score": require("../assets/icons/icon-score.png"),
     "icon-users": require("../assets/icons/icon-users.png"),

@@ -1,18 +1,31 @@
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { StyleSheet, TouchableOpacity, useWindowDimensions, View } from "react-native";
 import DefaultImage from "../base/imgs/FlipImage";
 import Assets from "@/common/assets";
 import FlipStyles from "@/styles";
 import DefaultText from "../base/Text";
 import { useFlipTheme } from "@/common";
+import { useCheckDevice } from "@/hooks/useCheckDevice";
 
-export const RoomCard = ({ onPressEvent }: { onPressEvent: () => void }) => {
+export const RoomCard = ({
+    title,
+    description,
+    onPressEvent
+}: {
+    title: string;
+    description: string;
+    onPressEvent: () => void;
+}) => {
     const theme = useFlipTheme();
+    const { isTablet } = useCheckDevice();
+    const { width } = useWindowDimensions(); // 현재 화면 크기 가져오기
+    const adjustedWidth = width * 0.5 - 8;
     return (
         <TouchableOpacity
             style={[
                 styles.roomCard,
                 FlipStyles.baseBoxShadow,
                 {
+                    maxWidth: isTablet ? adjustedWidth : width - 8,
                     backgroundColor: "#fff"
                 }
             ]}
@@ -20,10 +33,10 @@ export const RoomCard = ({ onPressEvent }: { onPressEvent: () => void }) => {
         >
             <DefaultImage img="imgs-score-active" aspectRatio={2 / 1} />
             <DefaultText Title4 color={theme.gray2} style={styles.title}>
-                악보 제목
+                {title}
             </DefaultText>
             <DefaultText Body2 color={theme.gray2}>
-                설명
+                {description}
             </DefaultText>
         </TouchableOpacity>
     );

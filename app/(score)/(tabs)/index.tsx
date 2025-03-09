@@ -1,6 +1,6 @@
-import { FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, FlatList, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
-import { Link } from "expo-router";
+import { Link, useNavigation, useRouter } from "expo-router";
 import FlipStyles from "@/styles";
 import DefaultText from "@/components/base/Text";
 import RowView from "@/components/base/RowView";
@@ -10,16 +10,25 @@ import { RoomCard } from "@/components/RoomList/RoomCard";
 import { useState } from "react";
 import ReactNativeModal from "react-native-modal";
 import { useCheckDevice } from "@/hooks/useCheckDevice";
+import FlipIcon from "@/components/base/imgs/FlipIcon";
+import { UserProfileCard } from "@/components/RoomList/UserProfileCard";
+import { useRoom } from "@/hooks/room";
+import { FloatingButton } from "@/components/base/Button/FloatingButton";
 
 const Tab = createBottomTabNavigator();
 const data = Array.from({ length: 30 }, (_, i) => ({ id: i, text: `Item ${i + 1}` }));
 export default function RoomList() {
     const theme = useFlipTheme();
+    const router = useRouter();
+    const { roomList, nextRoomList, hasNextRoomList, isFetchingNextRoomList, isLoadingRoomList } = useRoom();
     const { isTablet } = useCheckDevice();
     const [visible, setVisible] = useState(false);
     const onPressRoomCard = () => {
-        setVisible(true);
+        router.push("/(score)/modal");
     };
+    if (isLoadingRoomList) return <ActivityIndicator size="large" color="#3498db" />;
+    console.log(roomList);
+    const rooms = roomList?.pages.flatMap(page => page.data.content) ?? [];
     return (
         <View
             style={[
@@ -30,9 +39,12 @@ export default function RoomList() {
             ]}
         >
             <RowView style={styles.header} justifyContent="flex-end">
-                <DefaultText Button2>최신순</DefaultText>
+                <FlipIcon icon="icon-arrow-up-down" size={16} />
+                <DefaultText Button3>최신순</DefaultText>
             </RowView>
+            <FloatingButton onPress={() => router.push("/(score)/createRoomModal")} />
             <FlatList
+                data={rooms}
                 style={[
                     styles.roomList,
                     {
@@ -40,28 +52,22 @@ export default function RoomList() {
                     }
                 ]}
                 numColumns={isTablet ? 2 : 1}
-                contentContainerStyle={{
-                    paddingInline: FlipStyles.basePadding
+                keyExtractor={(item, index) => `room-${item.id}`}
+                renderItem={data => {
+                    return (
+                        <RoomCard
+                            title={data.item.name}
+                            description={data.item.creatorName}
+                            onPressEvent={onPressRoomCard}
+                        />
+                    );
                 }}
-                data={data}
-                renderItem={() => {
-                    return <RoomCard onPressEvent={onPressRoomCard} />;
+                onEndReached={() => {
+                    if (hasNextRoomList) nextRoomList();
                 }}
+                onEndReachedThreshold={0.5}
+                ListFooterComponent={isFetchingNextRoomList ? <ActivityIndicator size="small" color="#3498db" /> : null}
             />
-            <ReactNativeModal
-                isVisible={visible}
-                onBackdropPress={() => setVisible(false)}
-                style={isTablet ? styles.tabletModalStyle : styles.fullScreenModalStyle}
-                animationIn={isTablet ? "fadeIn" : "slideInLeft"}
-                animationOut={isTablet ? "fadeOut" : "slideOutLeft"}
-            >
-                <View style={styles.modalContent}>
-                    <Text style={styles.modalText}>{isTablet ? "태블릿 기본 모달" : "모바일 풀스크린 모달"}</Text>
-                    <TouchableOpacity onPress={() => setVisible(false)} style={styles.closeButton}>
-                        <Text style={styles.buttonText}>닫기</Text>
-                    </TouchableOpacity>
-                </View>
-            </ReactNativeModal>
         </View>
     );
 }
@@ -72,27 +78,61 @@ const styles = StyleSheet.create({
         paddingBottom: FlipStyles.basePadding
     },
     header: {
-        padding: FlipStyles.basePadding
+        padding: FlipStyles.basePadding,
+        gap: FlipStyles.adjustScale(4)
     },
     roomList: {
         flex: 1
     },
     button: { padding: 15, backgroundColor: "#3498db", borderRadius: 8 },
-    buttonText: { color: "#fff", fontSize: 16 },
+    profileWrap: {
+        maxHeight: FlipStyles.adjustScale(340)
+    },
+    profileBox: {
+        display: "flex",
+        flexDirection: "row",
+        flexWrap: "wrap",
+        paddingHorizontal: FlipStyles.adjustScale(20),
+        marginTop: FlipStyles.adjustScale(24),
+        gap: FlipStyles.adjustScale(16)
+    },
     modalContent: {
         backgroundColor: "white",
-        justifyContent: "center",
-        alignItems: "center",
         padding: 20,
         width: FlipStyles.windowWidth,
         height: FlipStyles.windowHeight
     },
+    tabletModalContent: {
+        backgroundColor: "#fff",
+        borderRadius: 10,
+        justifyContent: "space-between",
+        maxWidth: FlipStyles.adjustScale(562),
+        maxHeight: FlipStyles.adjustScale(505),
+        height: "100%"
+    },
+    modalHeader: { fontSize: 20, fontWeight: "bold", marginBottom: 20 },
     modalText: { fontSize: 20, fontWeight: "bold", marginBottom: 20 },
-    closeButton: { marginTop: 20, padding: 15, backgroundColor: "#e74c3c", borderRadius: 8 },
-
+    applyBtn: {
+        width: FlipStyles.adjustScale(121),
+        padding: FlipStyles.adjustScale(13),
+        borderRadius: FlipStyles.adjustScale(8),
+        justifyContent: "center",
+        alignItems: "center",
+        alignSelf: "flex-end"
+    },
     // 모바일 풀스크린 모달
     fullScreenModalStyle: { margin: 0, justifyContent: "flex-end" },
 
     // 태블릿 기본 모달 (중앙 정렬, 작은 크기)
-    tabletModalStyle: { alignSelf: "center", width: 300, height: 200, borderRadius: 10 }
+    tabletModalStyle: {
+        alignSelf: "center",
+        width: FlipStyles.adjustScale(562),
+        height: FlipStyles.adjustScale(500),
+        overflow: "hidden",
+        borderRadius: 10,
+        backgroundColor: "transparent"
+    },
+    bottomContainer: {
+        padding: FlipStyles.adjustScale(20)
+    }
 });

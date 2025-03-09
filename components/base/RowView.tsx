@@ -1,6 +1,6 @@
 import React from "react";
 
-import { StyleProp, StyleSheet, View, ViewProps, ViewStyle } from "react-native";
+import { SafeAreaView, StyleProp, StyleSheet, View, ViewProps, ViewStyle } from "react-native";
 
 type RowViewProps = {
     justifyContent?: ViewStyle["justifyContent"];
