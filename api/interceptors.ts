@@ -1,5 +1,6 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { AxiosError, AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from "axios";
+import { reloadAppAsync } from "expo";
 import { reload } from "expo-router/build/global-state/routing";
 
 type tApiError = {
@@ -16,7 +17,7 @@ const onRequest = async (config: InternalAxiosRequestConfig): Promise<InternalAx
     return config;
 };
 const onRequestError = (error: AxiosError): Promise<AxiosError> => {
-    console.error(`[request error] [${JSON.stringify(error)}]`);
+    // console.error(`[request error] [${JSON.stringify(error)}]`);
     return Promise.reject(error);
 };
 const onResponse = (response: AxiosResponse): AxiosResponse => {
@@ -24,6 +25,10 @@ const onResponse = (response: AxiosResponse): AxiosResponse => {
     return response.data;
 };
 const onResponseError = (error: AxiosError<tApiError>): Promise<AxiosError> => {
+    if (error.response?.data.code === "401_3") {
+        AsyncStorage.removeItem("token");
+        reloadAppAsync();
+    }
     return Promise.reject(error.response?.data);
 };
 export default function setupInterceptorsTo(axiosInstance: AxiosInstance): AxiosInstance {

@@ -15,19 +15,20 @@ import { UserProfileCard } from "@/components/RoomList/UserProfileCard";
 import { useRoom } from "@/hooks/room";
 import { FloatingButton } from "@/components/base/Button/FloatingButton";
 
-const Tab = createBottomTabNavigator();
-const data = Array.from({ length: 30 }, (_, i) => ({ id: i, text: `Item ${i + 1}` }));
 export default function RoomList() {
     const theme = useFlipTheme();
     const router = useRouter();
     const { roomList, nextRoomList, hasNextRoomList, isFetchingNextRoomList, isLoadingRoomList } = useRoom();
     const { isTablet } = useCheckDevice();
-    const [visible, setVisible] = useState(false);
-    const onPressRoomCard = () => {
-        router.push("/(score)/modal");
+    const onPressRoomCard = (id: number) => {
+        router.push({
+            pathname: "/(score)/modal",
+            params: {
+                groupId: id
+            }
+        });
     };
     if (isLoadingRoomList) return <ActivityIndicator size="large" color="#3498db" />;
-    console.log(roomList);
     const rooms = roomList?.pages.flatMap(page => page.data.content) ?? [];
     return (
         <View
@@ -52,13 +53,13 @@ export default function RoomList() {
                     }
                 ]}
                 numColumns={isTablet ? 2 : 1}
-                keyExtractor={(item, index) => `room-${item.id}`}
+                keyExtractor={item => `room-${item.id}`}
                 renderItem={data => {
                     return (
                         <RoomCard
                             title={data.item.name}
                             description={data.item.creatorName}
-                            onPressEvent={onPressRoomCard}
+                            onPressEvent={() => onPressRoomCard(data.item.id)}
                         />
                     );
                 }}

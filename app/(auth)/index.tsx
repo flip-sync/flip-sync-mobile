@@ -23,7 +23,7 @@ export default function SignIn() {
         try {
             const result = await signIn({ email, password });
             AsyncStorage.setItem("token", JSON.stringify(result.data));
-            router.replace("/(score)");
+            router.replace("/(score)/(tabs)");
         } catch (error) {
             console.log(error);
         }
@@ -77,7 +77,6 @@ export default function SignIn() {
                             }
                         ]}
                         onPress={() => {
-                            console.log("test");
                             router.push("/signup");
                         }}
                     >

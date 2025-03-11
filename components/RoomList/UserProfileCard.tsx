@@ -5,7 +5,7 @@ import DefaultText from "../base/Text";
 import FlipIcon from "../base/imgs/FlipIcon";
 import { StyleSheet } from "react-native";
 
-export const UserProfileCard = () => {
+export const UserProfileCard = ({ name }: { name: string }) => {
     const theme = useFlipTheme();
     return (
         <RowView
@@ -21,7 +21,7 @@ export const UserProfileCard = () => {
         >
             <FlipIcon icon="icon-profile" size={24} />
             <DefaultText Body2 color={theme.gray2}>
-                사용자
+                {name}
             </DefaultText>
         </RowView>
     );

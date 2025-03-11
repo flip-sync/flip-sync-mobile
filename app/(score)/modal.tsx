@@ -3,16 +3,20 @@ import FlipIcon from "@/components/base/imgs/FlipIcon";
 import RowView from "@/components/base/RowView";
 import DefaultText from "@/components/base/Text";
 import { UserProfileCard } from "@/components/RoomList/UserProfileCard";
+import { useRoom } from "@/hooks/room";
 import { useCheckDevice } from "@/hooks/useCheckDevice";
 import FlipStyles from "@/styles";
-import { useRoute } from "@react-navigation/native";
-import { useRouter } from "expo-router";
-import { useState } from "react";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 
+export type tError = { code: string; message: string };
 export default function RoomModal() {
     const theme = useFlipTheme();
     const router = useRouter();
+    const { groupId } = useLocalSearchParams();
+    const { groupDetail, joinRoom } = useRoom({
+        groupId: Number(groupId)
+    });
     const { isTablet } = useCheckDevice();
     return (
         <View style={isTablet ? styles.tabletModalContent : styles.modalContent}>
@@ -29,11 +33,11 @@ export default function RoomModal() {
                         }}
                     >
                         <DefaultText Title3 color={theme.gray1}>
-                            {isTablet ? "참여인원" : "모바일 풀스크린 모달"}
+                            {isTablet ? "참여인원" : "참여인원"}
                         </DefaultText>
-                        <DefaultText Body1 color={theme.gray4}>
+                        {/* <DefaultText Body1 color={theme.gray4}>
                             4/10
-                        </DefaultText>
+                        </DefaultText> */}
                     </RowView>
                     <TouchableOpacity onPress={() => router.back()}>
                         <FlipIcon icon="icon-close" size={24} />
@@ -42,41 +46,27 @@ export default function RoomModal() {
                 <View style={styles.profileWrap}>
                     <ScrollView>
                         <View style={styles.profileBox}>
-                            <UserProfileCard />
-                            <UserProfileCard />
-                            <UserProfileCard />
-                            <UserProfileCard />
-                            <UserProfileCard />
-                            <UserProfileCard />
-                            <UserProfileCard />
-                            <UserProfileCard />
-                            <UserProfileCard />
-                            <UserProfileCard />
-                            <UserProfileCard />
-                            <UserProfileCard />
-                            <UserProfileCard />
-                            <UserProfileCard />
-                            <UserProfileCard />
-                            <UserProfileCard />
-                            <UserProfileCard />
-                            <UserProfileCard />
-                            <UserProfileCard />
-                            <UserProfileCard />
-                            <UserProfileCard />
-                            <UserProfileCard />
-                            <UserProfileCard />
-                            <UserProfileCard />
-                            <UserProfileCard />
-                            <UserProfileCard />
-                            <UserProfileCard />
+                            {groupDetail?.data.map(v => {
+                                return <UserProfileCard key={v.id} name={v.name} />;
+                            })}
                         </View>
                     </ScrollView>
                 </View>
             </View>
             <View style={styles.bottomContainer}>
                 <TouchableOpacity
-                    onPress={() => {
-                        router.back();
+                    onPress={async () => {
+                        // router.back();
+                        try {
+                            const result = await joinRoom(Number(groupId));
+                            if (result.code === "200_0") {
+                                return router.replace(`/(score)/${groupId}`);
+                            }
+                        } catch (error) {
+                            if ((error as tError).code === "409_0") {
+                                return router.replace(`/(score)/${groupId}`);
+                            }
+                        }
                     }}
                     style={[
                         styles.applyBtn,
@@ -107,6 +97,8 @@ const styles = StyleSheet.create({
     },
     button: { padding: 15, backgroundColor: "#3498db", borderRadius: 8 },
     profileWrap: {
+        maxWidth: FlipStyles.adjustScale(562),
+        width: FlipStyles.adjustScale(562),
         maxHeight: FlipStyles.adjustScale(340)
     },
     profileBox: {
@@ -120,6 +112,7 @@ const styles = StyleSheet.create({
     modalContent: {
         backgroundColor: "white",
         padding: 20,
+        justifyContent: "space-between",
         width: FlipStyles.windowWidth,
         height: FlipStyles.windowHeight
     },

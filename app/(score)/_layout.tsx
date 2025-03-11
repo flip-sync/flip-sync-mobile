@@ -17,13 +17,13 @@ export default function ScoreTabLayout() {
     return (
         <Stack
             screenOptions={{
-                headerShown: false,
                 animation: "fade_from_bottom"
             }}
         >
             <Stack.Screen
                 name="(tabs)"
                 options={{
+                    headerShown: false,
                     title: "악보 공유방"
                 }}
             />
@@ -31,6 +31,7 @@ export default function ScoreTabLayout() {
             <Stack.Screen
                 name="modal"
                 options={{
+                    headerShown: false,
                     presentation: "transparentModal",
                     animation: "fade",
                     contentStyle: {
@@ -48,6 +49,21 @@ export default function ScoreTabLayout() {
                     headerShown: false,
                     presentation: "fullScreenModal",
                     animation: "fade"
+                }}
+            />
+            <Stack.Screen
+                name="createScoreModal"
+                options={{
+                    headerTitle: "",
+                    headerShown: false,
+                    presentation: "fullScreenModal",
+                    animation: "fade"
+                }}
+            />
+            <Stack.Screen
+                name="[roomId]"
+                options={{
+                    headerShown: true
                 }}
             />
         </Stack>
