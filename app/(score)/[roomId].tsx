@@ -1,6 +1,6 @@
 import { ActivityIndicator, FlatList, StyleSheet, View } from "react-native";
 
-import { useNavigation, useRouter } from "expo-router";
+import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import FlipStyles from "@/styles";
 import DefaultText from "@/components/base/Text";
 import RowView from "@/components/base/RowView";
@@ -17,7 +17,12 @@ export default function Room() {
     const theme = useFlipTheme();
     const navigation = useNavigation();
     const router = useRouter();
-    const { scoreList, nextScoreList, hasNextScoreList, isFetchingNextScoreList, isLoadingScoreList } = useScore();
+    const { roomId } = useLocalSearchParams();
+    const { scoreList, nextScoreList, hasNextScoreList, isFetchingNextScoreList, isLoadingScoreList, error } = useScore(
+        {
+            groupId: Number(roomId)
+        }
+    );
     const { isTablet } = useCheckDevice();
     useEffect(() => {
         navigation.setOptions({
@@ -25,7 +30,7 @@ export default function Room() {
             header: () => <Header title="그룹" />
         });
     }, [navigation]);
-
+    console.log(error);
     const score = scoreList?.pages.flatMap(page => page.data.content) ?? [];
     return (
         <View

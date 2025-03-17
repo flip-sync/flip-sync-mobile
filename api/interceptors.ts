@@ -11,13 +11,15 @@ const onRequest = async (config: InternalAxiosRequestConfig): Promise<InternalAx
     await AsyncStorage.getItem("token").then(token => {
         if (token) {
             const tokenData = JSON.parse(token);
-            config.headers.Authorization = `Bearer ${tokenData.accessToken}`;
+            console.log(tokenData.accessToken);
+            config.headers.Authorization = `${tokenData.accessToken}`;
         }
     });
+    console.log(config.data);
     return config;
 };
 const onRequestError = (error: AxiosError): Promise<AxiosError> => {
-    // console.error(`[request error] [${JSON.stringify(error)}]`);
+    console.error(`[request error] [${JSON.stringify(error)}]`);
     return Promise.reject(error);
 };
 const onResponse = (response: AxiosResponse): AxiosResponse => {
@@ -25,11 +27,12 @@ const onResponse = (response: AxiosResponse): AxiosResponse => {
     return response.data;
 };
 const onResponseError = (error: AxiosError<tApiError>): Promise<AxiosError> => {
+    console.log(error.response?.data);
     if (error.response?.data.code === "401_3") {
         AsyncStorage.removeItem("token");
         reloadAppAsync();
     }
-    return Promise.reject(error.response?.data);
+    return Promise.reject(error);
 };
 export default function setupInterceptorsTo(axiosInstance: AxiosInstance): AxiosInstance {
     axiosInstance.interceptors.request.use(onRequest, onRequestError);

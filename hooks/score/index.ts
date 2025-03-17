@@ -24,6 +24,7 @@ export const useScore = (props?: { groupId: number }) => {
     });
     return {
         scoreList,
+        error,
         nextScoreList,
         hasNextScoreList,
         isFetchingNextScoreList,

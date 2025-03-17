@@ -7,8 +7,10 @@ export const icon = {
     "icon-arrow-up-down": require("../assets/icons/icon-arrow-up-down.png"),
     "icon-back": require("../assets/icons/icon-back.png"),
     "icon-close": require("../assets/icons/icon-close.png"),
+    "icon-delete": require("../assets/icons/icon-delete.png"),
     "icon-plus": require("../assets/icons/icon-plus.png"),
     "icon-profile": require("../assets/icons/icon-profile.png"),
+    "icon-score-add": require("../assets/icons/icon-score-add.png"),
     "icon-score": require("../assets/icons/icon-score.png"),
     "icon-users": require("../assets/icons/icon-users.png"),
 };

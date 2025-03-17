@@ -1,21 +1,35 @@
 import { useFlipTheme } from "@/common";
-import DefaultButton from "@/components/base/Button";
 import { Header } from "@/components/base/Header";
-import FlipIcon from "@/components/base/imgs/FlipIcon";
 import RowView from "@/components/base/RowView";
 import DefaultText from "@/components/base/Text";
-import DefaultInput from "@/components/base/TextInput";
 import FormInput from "@/components/base/TextInput/FormTextInput";
 import ImageUpload from "@/components/ScoreRoom/ImageUpload";
-import { useRoom } from "@/hooks/room";
 import { useScore } from "@/hooks/score";
 import { useCheckDevice } from "@/hooks/useCheckDevice";
 import FlipStyles from "@/styles";
-import { useNavigation, useRouter } from "expo-router";
+import { useNavigation } from "expo-router";
 import { useExpoRouter } from "expo-router/build/global-state/router-store";
-import { useCallback, useEffect, useLayoutEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Platform, SafeAreaView, StyleSheet, StatusBar, View, TouchableOpacity, Alert } from "react-native";
-
+export type tImageItem = {
+    uri: string;
+    order: number;
+};
+const logFormData = (formData: FormData) => {
+    for (const pair of formData.entries()) {
+        console.log(`${pair[0]}:`, pair[1]);
+    }
+};
+const uriToBlob = async (uri: string) => {
+    try {
+        const response = await fetch(uri);
+        const blob = await response.blob();
+        return blob;
+    } catch (error) {
+        console.error("Blob 변환 오류:", error);
+        return null;
+    }
+};
 export default function CreateRoomModal() {
     const theme = useFlipTheme();
     const navigation = useNavigation();
@@ -24,20 +38,47 @@ export default function CreateRoomModal() {
     const [scoreTitle, setScoreTitle] = useState("");
     const [singer, setSinger] = useState("");
     const [code, setCode] = useState("");
+    const [uploading, setUploading] = useState<boolean>(false);
+    const [images, setImages] = useState<tImageItem[]>([]);
     const { isTablet } = useCheckDevice();
-    const handleCreateRoom = useCallback(async () => {
+    const handleScoreRoom = async () => {
         try {
             const formData = new FormData();
+            console.log(scoreTitle, singer, code);
             formData.append("title", scoreTitle);
             formData.append("singer", singer);
             formData.append("code", code);
+            for (let index = 0; index < images.length; index++) {
+                const image = images[index];
+                const blob = await uriToBlob(image.uri);
+                if (blob) {
+                    formData.append(`imageList[${index}].file`, {
+                        uri: image.uri,
+                        name: `image_${Date.now()}_${index}.jpg`,
+                        type: "image/jpeg"
+                    } as unknown as File);
 
+                    formData.append(`imageList[${index}].order`, image.order.toString());
+                }
+            }
+            logFormData(formData);
             const result = await createScore({ groupId: "1", formData: formData });
+            console.log(result);
         } catch (error) {
-            Alert.alert("방 생성에 실패했습니다.");
+            console.log(error);
+            Alert.alert("악보 업로드에 실패했습니다.");
             router.reload();
         }
-    }, [scoreTitle, singer, code]);
+    };
+    const handleSelectImage = (selectedImages: tImageItem[]) => {
+        setImages(prevImages => [...prevImages, ...selectedImages]);
+    };
+    const handleDeleteImage = (uri: string) => {
+        setImages(prevImages => prevImages.filter(image => image.uri !== uri));
+    };
+    useEffect(() => {
+        console.log(singer);
+    }, [singer]);
     useEffect(() => {
         navigation.setOptions({
             headerShown: true,
@@ -51,7 +92,7 @@ export default function CreateRoomModal() {
                             justifyContent: "center",
                             alignItems: "center"
                         }}
-                        onPress={handleCreateRoom}
+                        onPress={handleScoreRoom}
                     >
                         <DefaultText Button2>전송</DefaultText>
                     </TouchableOpacity>
@@ -64,7 +105,8 @@ export default function CreateRoomModal() {
             style={[
                 styles.container,
                 {
-                    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0
+                    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
+                    backgroundColor: theme.white
                 }
             ]}
         >
@@ -94,7 +136,11 @@ export default function CreateRoomModal() {
                         height: FlipStyles.adjustScale(300)
                     }}
                 >
-                    <ImageUpload />
+                    <ImageUpload
+                        images={images}
+                        handleSelectImage={handleSelectImage}
+                        handleDeleteImage={handleDeleteImage}
+                    />
                 </View>
             </View>
         </SafeAreaView>

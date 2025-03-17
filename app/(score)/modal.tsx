@@ -6,10 +6,11 @@ import { UserProfileCard } from "@/components/RoomList/UserProfileCard";
 import { useRoom } from "@/hooks/room";
 import { useCheckDevice } from "@/hooks/useCheckDevice";
 import FlipStyles from "@/styles";
+import { isAxiosError } from "axios";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ScrollView, StyleSheet, TouchableOpacity, View } from "react-native";
 
-export type tError = { code: string; message: string };
+export type tError = { response: { code: string; message: string } };
 export default function RoomModal() {
     const theme = useFlipTheme();
     const router = useRouter();
@@ -19,7 +20,14 @@ export default function RoomModal() {
     });
     const { isTablet } = useCheckDevice();
     return (
-        <View style={isTablet ? styles.tabletModalContent : styles.modalContent}>
+        <View
+            style={[
+                isTablet ? styles.tabletModalContent : styles.modalContent,
+                {
+                    backgroundColor: theme.white
+                }
+            ]}
+        >
             <View>
                 <RowView
                     style={{
@@ -63,8 +71,10 @@ export default function RoomModal() {
                                 return router.replace(`/(score)/${groupId}`);
                             }
                         } catch (error) {
-                            if ((error as tError).code === "409_0") {
-                                return router.replace(`/(score)/${groupId}`);
+                            if (isAxiosError(error)) {
+                                if (error?.response?.data?.code === "409_0") {
+                                    return router.replace(`/(score)/${groupId}`);
+                                }
                             }
                         }
                     }}
@@ -110,14 +120,12 @@ const styles = StyleSheet.create({
         gap: FlipStyles.adjustScale(16)
     },
     modalContent: {
-        backgroundColor: "white",
         padding: 20,
         justifyContent: "space-between",
         width: FlipStyles.windowWidth,
         height: FlipStyles.windowHeight
     },
     tabletModalContent: {
-        backgroundColor: "#fff",
         borderRadius: 10,
         justifyContent: "space-between",
         maxWidth: FlipStyles.adjustScale(562),

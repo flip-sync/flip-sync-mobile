@@ -17,6 +17,10 @@ export const scoreApi: IScoreApi = {
         });
     },
     postScore: (props: tCreateScore) => {
-        return baseUrl.post(`/group/${props?.groupId}/score`, props?.formData);
+        return baseUrl.post(`/group/${props?.groupId}/score`, props?.formData, {
+            headers: {
+                "Content-Type": "multipart/form-data"
+            }
+        });
     }
 };
