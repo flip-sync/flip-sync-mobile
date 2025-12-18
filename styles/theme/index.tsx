@@ -78,26 +78,32 @@ export const ThemeContext = React.createContext<ThemeType>({
 });
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
-    const appearance = Appearance.getColorScheme() ?? "light";
-
+    const initialAppearance = Appearance.getColorScheme() ?? "light";
     const [theme, setTheme] = useState<ThemeType>({
-        appearance,
-        isDark: appearance === "dark",
-        ...themeColors[appearance]
+        appearance: initialAppearance,
+        isDark: initialAppearance === "dark",
+        ...themeColors[initialAppearance]
     });
 
     useEffect(() => {
-        setTheme({
-            appearance,
-            isDark: appearance === "dark",
-            ...themeColors[appearance]
+        const subscription = Appearance.addChangeListener(({ colorScheme }) => {
+            const nextAppearance = colorScheme ?? "light";
+            setTheme({
+                appearance: nextAppearance,
+                isDark: nextAppearance === "dark",
+                ...themeColors[nextAppearance]
+            });
         });
-    }, [appearance]);
+
+        return () => {
+            subscription.remove();
+        };
+    }, []);
 
     useEffect(() => {
         Platform.OS === "android" && StatusBar.setBackgroundColor("transparent");
-        StatusBar.setBarStyle(statusBarTheme.style[appearance], true);
-    }, [appearance]);
+        StatusBar.setBarStyle(statusBarTheme.style[theme.appearance], true);
+    }, [theme.appearance]);
 
     return <ThemeContext.Provider value={theme}>{children}</ThemeContext.Provider>;
 };
