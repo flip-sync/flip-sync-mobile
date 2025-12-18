@@ -56,6 +56,7 @@ const DefaultText: React.FC<CBTextProps> = ({
                 {...textProps}
                 style={[
                     fontStyles.Body2, // base fontSize
+                    LargeTitle && fontStyles.LargeTitle,
                     Title1 && fontStyles.Title1,
                     Title2 && fontStyles.Title2,
                     Title3 && fontStyles.Title3,

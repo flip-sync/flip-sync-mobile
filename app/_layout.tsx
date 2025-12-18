@@ -27,9 +27,14 @@ export default function RootLayout() {
     Pretendard: require('../assets/fonts/Pretendard-Regular.ttf'),
     ...FontAwesome.font,
   });
-  Dimensions.addEventListener("change", status => {
-    styles.setNewDimension(status.window.width, status.window.height);
-});
+
+  useEffect(() => {
+    const subscription = Dimensions.addEventListener("change", status => {
+      styles.setNewDimension(status.window.width, status.window.height);
+    });
+
+    return () => subscription.remove();
+  }, []);
 
   // Expo Router uses Error Boundaries to catch errors in the navigation tree.
   useEffect(() => {
