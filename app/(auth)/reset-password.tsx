@@ -1,4 +1,4 @@
-import { checkVerifyEmail, signup, useFlipTheme, verifyEmail } from "@/common";
+import { checkVerifyEmail, resetPassword, useFlipTheme, verifyEmail } from "@/common";
 import DefaultText from "@/components/base/Text";
 import FormTextInput from "@/components/base/TextInput/FormTextInput";
 import FlipStyles from "@/styles";
@@ -28,25 +28,22 @@ const getErrorMessage = (error: unknown) => {
   return "요청을 처리하지 못했습니다. 잠시 후 다시 시도해 주세요.";
 };
 
-export default function SignUp() {
+export default function ResetPasswordScreen() {
   const theme = useFlipTheme();
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
-  const [name, setName] = useState("");
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [requestedEmail, setRequestedEmail] = useState<string | null>(null);
   const [verifiedEmail, setVerifiedEmail] = useState<string | null>(null);
   const [message, setMessage] = useState<StatusMessage | null>(null);
-  const [pendingAction, setPendingAction] = useState<"request" | "verify" | "signup" | null>(null);
+  const [pendingAction, setPendingAction] = useState<"request" | "verify" | "reset" | null>(null);
 
   const normalizedEmail = email.trim();
   const isVerified = verifiedEmail === normalizedEmail && normalizedEmail.length > 0;
   const canSubmit =
     isVerified &&
-    normalizedEmail.length > 0 &&
-    name.trim().length > 0 &&
     password.length > 0 &&
     passwordConfirm.length > 0 &&
     pendingAction === null;
@@ -84,7 +81,7 @@ export default function SignUp() {
       setCode("");
       setMessage({
         type: "success",
-        text: "인증 코드를 보냈습니다. 받은 코드를 아래에 입력해 주세요."
+        text: "인증 코드를 보냈습니다. 이메일 확인 후 코드를 입력해 주세요."
       });
     } catch (error) {
       setMessage({
@@ -117,7 +114,7 @@ export default function SignUp() {
       setVerifiedEmail(normalizedEmail);
       setMessage({
         type: "success",
-        text: "이메일 인증이 완료되었습니다."
+        text: "이메일 인증이 완료되었습니다. 새 비밀번호를 입력해 주세요."
       });
     } catch (error) {
       setMessage({
@@ -129,39 +126,37 @@ export default function SignUp() {
     }
   };
 
-  const handleSignUp = async () => {
+  const handleResetPassword = async () => {
     if (!isVerified) {
       setMessage({
         type: "error",
-        text: "회원가입 전에 이메일 인증을 완료해 주세요."
+        text: "비밀번호 재설정 전에 이메일 인증을 완료해 주세요."
       });
       return;
     }
 
-    if (!name.trim() || !password || !passwordConfirm) {
+    if (!password || !passwordConfirm) {
       setMessage({
         type: "error",
-        text: "이름과 비밀번호를 모두 입력해 주세요."
+        text: "새 비밀번호와 확인 값을 모두 입력해 주세요."
       });
       return;
     }
 
-    setPendingAction("signup");
+    setPendingAction("reset");
     setMessage(null);
 
     try {
-      await signup({
+      await resetPassword({
         email: normalizedEmail,
-        name: name.trim(),
         password,
         passwordConfirm
       });
-
       router.replace({
         pathname: "/(auth)",
         params: {
           email: normalizedEmail,
-          success: "signup"
+          success: "reset"
         }
       });
     } catch (error) {
@@ -187,17 +182,17 @@ export default function SignUp() {
         >
           <Stack.Screen
             options={{
-              title: "회원가입",
+              title: "비밀번호 재설정",
               headerShadowVisible: false
             }}
           />
           <View style={[styles.card, { backgroundColor: theme.white }]}>
             <View style={styles.heroBlock}>
               <DefaultText Title3 weight="800" color={theme.gray2}>
-                새 계정 만들기
+                비밀번호 재설정
               </DefaultText>
               <DefaultText Body1 color={theme.gray4} containerStyle={styles.heroSubtitle}>
-                이메일 인증 후 이름과 비밀번호를 입력하면 바로 가입할 수 있습니다.
+                가입한 이메일을 인증한 뒤 새 비밀번호로 바로 교체할 수 있습니다.
               </DefaultText>
             </View>
 
@@ -218,9 +213,6 @@ export default function SignUp() {
             )}
 
             <View style={styles.sectionBlock}>
-              <DefaultText Body1 weight="700" color={theme.gray2} containerStyle={styles.sectionTitle}>
-                1. 이메일 인증
-              </DefaultText>
               <FormTextInput
                 value={email}
                 label="이메일"
@@ -255,66 +247,53 @@ export default function SignUp() {
                   </DefaultText>
                 )}
               </Pressable>
-
-              {(requestedEmail === normalizedEmail || isVerified) && (
-                <View style={styles.codeBlock}>
-                  <FormTextInput
-                    value={code}
-                    label="인증 코드"
-                    placeholder="받은 6자리 코드를 입력해 주세요"
-                    keyboardType="number-pad"
-                    autoCapitalize="none"
-                    containerStyle={styles.fieldGap}
-                    onChangeText={value => {
-                      setCode(value);
-                      clearMessage();
-                    }}
-                  />
-                  <Pressable
-                    accessibilityRole="button"
-                    disabled={pendingAction !== null || isVerified}
-                    onPress={handleCheckCode}
-                    style={({ pressed }) => [
-                      styles.secondaryButton,
-                      {
-                        backgroundColor: isVerified ? theme.primaryLight : theme.white,
-                        borderColor: isVerified ? theme.primary : theme.gray6
-                      },
-                      pressed && pendingAction === null && !isVerified ? styles.secondaryButtonPressed : null,
-                      (pendingAction !== null || isVerified) ? styles.secondaryButtonDisabled : null
-                    ]}
-                  >
-                    {pendingAction === "verify" ? (
-                      <ActivityIndicator color={theme.primary} />
-                    ) : (
-                      <DefaultText Button2 weight="700" color={isVerified ? theme.primary : theme.gray2}>
-                        {isVerified ? "인증 완료" : "인증 확인"}
-                      </DefaultText>
-                    )}
-                  </Pressable>
-                </View>
-              )}
             </View>
 
+            {(requestedEmail === normalizedEmail || isVerified) && (
+              <View style={styles.sectionBlock}>
+                <FormTextInput
+                  value={code}
+                  label="인증 코드"
+                  placeholder="받은 6자리 코드를 입력해 주세요"
+                  keyboardType="number-pad"
+                  autoCapitalize="none"
+                  containerStyle={styles.fieldGap}
+                  onChangeText={value => {
+                    setCode(value);
+                    clearMessage();
+                  }}
+                />
+
+                <Pressable
+                  accessibilityRole="button"
+                  disabled={pendingAction !== null || isVerified}
+                  onPress={handleCheckCode}
+                  style={({ pressed }) => [
+                    styles.secondaryButton,
+                    {
+                      backgroundColor: isVerified ? theme.primaryLight : theme.white,
+                      borderColor: isVerified ? theme.primary : theme.gray6
+                    },
+                    pressed && pendingAction === null && !isVerified ? styles.secondaryButtonPressed : null,
+                    (pendingAction !== null || isVerified) ? styles.secondaryButtonDisabled : null
+                  ]}
+                >
+                  {pendingAction === "verify" ? (
+                    <ActivityIndicator color={theme.primary} />
+                  ) : (
+                    <DefaultText Button2 weight="700" color={isVerified ? theme.primary : theme.gray2}>
+                      {isVerified ? "인증 완료" : "인증 확인"}
+                    </DefaultText>
+                  )}
+                </Pressable>
+              </View>
+            )}
+
             <View style={styles.sectionBlock}>
-              <DefaultText Body1 weight="700" color={theme.gray2} containerStyle={styles.sectionTitle}>
-                2. 기본 정보 입력
-              </DefaultText>
-              <FormTextInput
-                value={name}
-                label="이름"
-                placeholder="표시할 이름을 입력해 주세요"
-                autoCapitalize="none"
-                containerStyle={styles.fieldGap}
-                onChangeText={value => {
-                  setName(value);
-                  clearMessage();
-                }}
-              />
               <FormTextInput
                 value={password}
-                label="비밀번호"
-                placeholder="비밀번호를 입력해 주세요"
+                label="새 비밀번호"
+                placeholder="새 비밀번호를 입력해 주세요"
                 secureTextEntry
                 autoCapitalize="none"
                 textContentType="newPassword"
@@ -326,8 +305,8 @@ export default function SignUp() {
               />
               <FormTextInput
                 value={passwordConfirm}
-                label="비밀번호 확인"
-                placeholder="비밀번호를 한 번 더 입력해 주세요"
+                label="새 비밀번호 확인"
+                placeholder="새 비밀번호를 한 번 더 입력해 주세요"
                 secureTextEntry
                 autoCapitalize="none"
                 textContentType="newPassword"
@@ -342,7 +321,7 @@ export default function SignUp() {
             <Pressable
               accessibilityRole="button"
               disabled={!canSubmit}
-              onPress={handleSignUp}
+              onPress={handleResetPassword}
               style={({ pressed }) => [
                 styles.primaryButton,
                 { backgroundColor: theme.primary },
@@ -350,25 +329,14 @@ export default function SignUp() {
                 !canSubmit ? styles.primaryButtonDisabled : null
               ]}
             >
-              {pendingAction === "signup" ? (
+              {pendingAction === "reset" ? (
                 <ActivityIndicator color={theme.white} />
               ) : (
                 <DefaultText Button1 weight="700" color={theme.white}>
-                  회원가입 완료
+                  비밀번호 변경
                 </DefaultText>
               )}
             </Pressable>
-
-            <View style={styles.footerBlock}>
-              <DefaultText Body2 color={theme.gray4}>
-                이미 계정이 있으신가요?
-              </DefaultText>
-              <Pressable onPress={() => router.back()}>
-                <DefaultText Body2 weight="700" color={theme.primary}>
-                  로그인으로 돌아가기
-                </DefaultText>
-              </Pressable>
-            </View>
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
@@ -410,14 +378,8 @@ const styles = StyleSheet.create({
   sectionBlock: {
     marginBottom: FlipStyles.adjustScale(18)
   },
-  sectionTitle: {
-    marginBottom: FlipStyles.adjustScale(10)
-  },
   fieldGap: {
     marginBottom: FlipStyles.adjustScale(12)
-  },
-  codeBlock: {
-    marginTop: FlipStyles.adjustScale(4)
   },
   primaryButton: {
     minHeight: FlipStyles.adjustScale(56),
@@ -444,12 +406,5 @@ const styles = StyleSheet.create({
   },
   secondaryButtonDisabled: {
     opacity: 0.7
-  },
-  footerBlock: {
-    marginTop: FlipStyles.adjustScale(18),
-    flexDirection: "row",
-    justifyContent: "center",
-    alignItems: "center",
-    gap: FlipStyles.adjustScale(6)
   }
 });
