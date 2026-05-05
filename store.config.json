@@ -1,0 +1,38 @@
+{
+  "configVersion": 0,
+  "apple": {
+    "categories": ["MUSIC", "PRODUCTIVITY"],
+    "copyright": "2026 FlipSync",
+    "advisory": {
+      "alcoholTobaccoOrDrugUseOrReferences": "NONE",
+      "contests": "NONE",
+      "gamblingSimulated": "NONE",
+      "horrorOrFearThemes": "NONE",
+      "matureOrSuggestiveThemes": "NONE",
+      "medicalOrTreatmentInformation": "NONE",
+      "profanityOrCrudeHumor": "NONE",
+      "sexualContentGraphicAndNudity": "NONE",
+      "sexualContentOrNudity": "NONE",
+      "violenceCartoonOrFantasy": "NONE",
+      "violenceRealistic": "NONE",
+      "violenceRealisticProlongedGraphicOrSadistic": "NONE",
+      "gambling": false,
+      "unrestrictedWebAccess": false,
+      "kidsAgeBand": null,
+      "ageRatingOverride": "NONE",
+      "koreaAgeRatingOverride": "NONE"
+    },
+    "info": {
+      "ko": {
+        "title": "FlipSync",
+        "subtitle": "합주 팀 악보 공유와 연습 관리",
+        "description": "FlipSync는 합주 팀과 소규모 음악 그룹을 위한 악보 공유 앱입니다. 소속을 선택해 팀 단위로 정리하고, 악보 창고에 악보를 모아두고, 공유방으로 필요한 악보를 바로 보낼 수 있습니다.\n\n팀원들은 초대 링크나 초대 코드로 같은 공간에 참여할 수 있고, 방 안에서 공유된 악보를 함께 확인할 수 있습니다. 프로필 이미지 설정, 이메일 기반 회원가입과 로그인, 소속 전환, 계정 삭제 안내도 앱 안에서 바로 확인할 수 있습니다.\n\nFlipSync는 종이 악보를 단순히 보관하는 데서 끝나지 않고, 연습 전에 필요한 악보를 빠르게 공유하고 팀 단위로 정리하는 흐름에 맞춰 설계되었습니다. 합주 준비, 리허설 전 정리, 팀별 악보 관리가 필요한 사용자에게 적합합니다.",
+        "keywords": ["악보", "합주", "밴드", "음악", "연습", "공유", "팀", "공연"],
+        "releaseNotes": "초기 출시 버전입니다.",
+        "promoText": "팀별 악보를 한곳에 모으고, 공유방에서 함께 확인해 보세요.",
+        "supportUrl": "https://fliplyze.com/mob/support",
+        "privacyPolicyUrl": "https://fliplyze.com/mob/legal/privacy-policy"
+      }
+    }
+  }
+}

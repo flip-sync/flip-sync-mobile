@@ -1,4 +1,4 @@
-import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
+﻿import { forwardRef, useCallback, useEffect, useImperativeHandle, useMemo, useRef, useState } from "react";
 import DefaultInput, { tFeedbackStyle, tInputFeedback } from ".";
 import { useFlipTheme } from "@/common";
 import {
@@ -15,6 +15,7 @@ import {
 import DefaultText, { FONT_WEIGHT } from "../Text";
 import FlipStyles from "@/styles";
 import RowView from "../RowView";
+import FlipIcon from "../imgs/FlipIcon";
 
 export type FormTextInputProps = {
     value?: string;
@@ -139,7 +140,7 @@ const FormInput = forwardRef<FormTextInputRef, FormTextInputProps>(
                 setLabelStyle({
                     color: theme.gray3,
                     fontFamily: FONT_WEIGHT["500"],
-                    text: " (선택)"
+                    text: " (?좏깮)"
                 });
             } else if (isRequired) {
                 setLabelStyle({
@@ -241,7 +242,7 @@ const FormInput = forwardRef<FormTextInputRef, FormTextInputProps>(
 
                             {value && hasClearButton && isFocused && (
                                 <TouchableOpacity onPress={onClearPress} style={styles.subActionIconContainer}>
-                                    <Text>삭제</Text>
+                                    <FlipIcon icon="icon-input-clear" size={16} />
                                 </TouchableOpacity>
                             )}
                             {hasValidButton && !disabled && (
@@ -301,7 +302,7 @@ const styles = StyleSheet.create({
         position: "absolute"
     },
     subActionIconContainer: {
-        marginLeft: FlipStyles.adjustScale(24)
+        marginLeft: FlipStyles.adjustScale(12)
     },
     validIconContainer: {
         paddingVertical: FlipStyles.adjustScale(4),
@@ -330,3 +331,4 @@ const styles = StyleSheet.create({
 });
 
 export default FormInput;
+

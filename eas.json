@@ -1,0 +1,53 @@
+{
+  "cli": {
+    "appVersionSource": "remote",
+    "requireCommit": false
+  },
+  "build": {
+    "development": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "environment": "development",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://fliplyze.com/mob"
+      }
+    },
+    "preview": {
+      "distribution": "internal",
+      "environment": "preview",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://fliplyze.com/mob"
+      }
+    },
+    "production": {
+      "autoIncrement": true,
+      "environment": "production",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://fliplyze.com/mob"
+      }
+    }
+  },
+  "submit": {
+    "internal": {
+      "android": {
+        "applicationId": "com.fliplyze.flipsync",
+        "track": "internal",
+        "releaseStatus": "completed"
+      },
+      "ios": {}
+    },
+    "production": {
+      "android": {
+        "applicationId": "com.fliplyze.flipsync",
+        "track": "production",
+        "releaseStatus": "draft",
+        "changesNotSentForReview": true
+      },
+      "ios": {
+        "appName": "FlipSync",
+        "language": "ko",
+        "metadataPath": "./store.config.json"
+      }
+    }
+  }
+}

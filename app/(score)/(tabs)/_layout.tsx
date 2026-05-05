@@ -1,15 +1,11 @@
-import { StyleSheet, Text, View } from "react-native";
-
-import { Link } from "expo-router";
-import FlipStyles from "@/styles";
-import DefaultText from "@/components/base/Text";
-import RowView from "@/components/base/RowView";
-import { Tabs } from "expo-router";
+﻿import { Tabs } from "expo-router";
 import { useFlipTheme } from "@/common";
 import FlipIcon from "@/components/base/imgs/FlipIcon";
+import FlipStyles from "@/styles";
 
 export default function HomeTabLayout() {
     const theme = useFlipTheme();
+
     return (
         <Tabs
             screenOptions={{
@@ -38,7 +34,9 @@ export default function HomeTabLayout() {
                 name="MyInfo"
                 options={{
                     title: "마이페이지",
-                    tabBarIcon: ({ color }) => <FlipIcon icon="icon-profile" size={24} />
+                    tabBarIcon: ({ focused }) => (
+                        <FlipIcon icon="icon-profile-default" size={24} style={{ opacity: focused ? 1 : 0.6 }} />
+                    )
                 }}
             />
         </Tabs>

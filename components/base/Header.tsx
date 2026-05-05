@@ -1,12 +1,20 @@
 import FlipStyles from "@/styles";
 import RowView from "./RowView";
-import { TouchableOpacity } from "react-native";
+import { StyleSheet, TouchableOpacity, View } from "react-native";
 import FlipIcon from "./imgs/FlipIcon";
 import DefaultText from "./Text";
 import { useRouter } from "expo-router";
 import { useFlipTheme } from "@/common";
 
-export const Header = ({ children, title }: { children?: React.ReactNode; title?: string }) => {
+export const Header = ({
+    children,
+    title,
+    subtitle
+}: {
+    children?: React.ReactNode;
+    title?: string;
+    subtitle?: string;
+}) => {
     const theme = useFlipTheme();
     const router = useRouter();
     return (
@@ -31,16 +39,30 @@ export const Header = ({ children, title }: { children?: React.ReactNode; title?
                         <FlipIcon icon="icon-back" size={24} />
                     </TouchableOpacity>
                 )}
-                <DefaultText
-                    Title4
-                    style={{
-                        paddingVertical: FlipStyles.adjustScale(16)
-                    }}
-                >
-                    {title}
-                </DefaultText>
+                <View style={styles.titleBlock}>
+                    <DefaultText
+                        Title4
+                        style={{
+                            paddingVertical: subtitle ? 0 : FlipStyles.adjustScale(16)
+                        }}
+                    >
+                        {title}
+                    </DefaultText>
+                    {!!subtitle && (
+                        <DefaultText Button3 color={theme.gray4}>
+                            {subtitle}
+                        </DefaultText>
+                    )}
+                </View>
             </RowView>
             {children}
         </RowView>
     );
 };
+
+const styles = StyleSheet.create({
+    titleBlock: {
+        justifyContent: "center",
+        paddingVertical: FlipStyles.adjustScale(10)
+    }
+});

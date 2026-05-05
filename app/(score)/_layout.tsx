@@ -1,19 +1,6 @@
-import { useFlipTheme } from "@/common";
-import FlipIcon from "@/components/base/imgs/FlipIcon";
-import RowView from "@/components/base/RowView";
-import DefaultText from "@/components/base/Text";
-import FlipStyles from "@/styles";
-import { Stack, useRouter } from "expo-router";
-import { useExpoRouter } from "expo-router/build/global-state/router-store";
-import { StatusBar } from "expo-status-bar";
-import { SafeAreaView, TouchableOpacity, View } from "react-native";
-
-// You can explore the built-in icon families and icons on the web at https://icons.expo.fyi/
+﻿import { Stack } from "expo-router";
 
 export default function ScoreTabLayout() {
-    const theme = useFlipTheme();
-    const router = useExpoRouter();
-
     return (
         <Stack
             screenOptions={{
@@ -24,7 +11,7 @@ export default function ScoreTabLayout() {
                 name="(tabs)"
                 options={{
                     headerShown: false,
-                    title: "악보 공유방"
+                    title: "악보공유방"
                 }}
             />
 
@@ -58,6 +45,13 @@ export default function ScoreTabLayout() {
                     headerShown: false,
                     presentation: "fullScreenModal",
                     animation: "fade"
+                }}
+            />
+            <Stack.Screen
+                name="organization-info"
+                options={{
+                    headerShown: true,
+                    title: "소속 정보"
                 }}
             />
             <Stack.Screen

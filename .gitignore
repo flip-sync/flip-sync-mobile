@@ -3,9 +3,11 @@
 # dependencies
 node_modules/
 bun.lockb
+bun.lock
 
 # Expo
 .expo/
+.eas/
 .vscode/
 dist/
 web-build/
@@ -18,6 +20,7 @@ expo-env.d.ts
 *.p12
 *.key
 *.mobileprovision
+.secrets/
 
 # Metro
 .metro-health-check*

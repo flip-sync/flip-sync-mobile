@@ -1,35 +1,54 @@
 {
-    "expo": {
-        "name": "Flipsync",
-        "slug": "Flipsync",
-        "version": "1.0.0",
-        "orientation": "portrait",
-        "icon": "./assets/images/imgs-icon.png",
-        "scheme": "flipsync",
-        "userInterfaceStyle": "automatic",
-        "newArchEnabled": true,
-        "splash": {
-            "image": "./assets/images/imgs-splash-icon.png",
-            "resizeMode": "contain",
-            "backgroundColor": "#ffffff"
-        },
-        "ios": {
-            "supportsTablet": true
-        },
-        "android": {
-            "adaptiveIcon": {
-                "foregroundImage": "./assets/images/imgs-adaptive-icon.png",
-                "backgroundColor": "#ffffff"
-            }
-        },
-        "web": {
-            "bundler": "metro",
-            "output": "static",
-            "favicon": "./assets/images/imgs-favicon.png"
-        },
-        "plugins": ["expo-router"],
-        "experiments": {
-            "typedRoutes": true
+  "expo": {
+    "name": "Flipsync",
+    "slug": "flipsync",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/images/imgs-icon.png",
+    "scheme": "flipsync",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/images/imgs-splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#ffffff"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.fliplyze.flipsync",
+      "buildNumber": "1",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.fliplyze.flipsync",
+      "versionCode": 1,
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/images/imgs-adaptive-icon.png",
+        "backgroundColor": "#ffffff"
+      }
+    },
+    "web": {
+      "bundler": "metro",
+      "output": "static",
+      "favicon": "./assets/images/imgs-favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      "expo-image",
+      "expo-web-browser",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "프로필 사진과 악보 이미지를 업로드하려면 사진 보관함 접근 권한이 필요합니다.",
+          "cameraPermission": false,
+          "microphonePermission": false
         }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": true
     }
+  }
 }

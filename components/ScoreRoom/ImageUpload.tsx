@@ -1,99 +1,120 @@
-import React, { useState } from "react";
-import {
-    View,
-    Button,
-    Image,
-    ActivityIndicator,
-    Alert,
-    StyleSheet,
-    FlatList,
-    TouchableOpacity,
-    Text
-} from "react-native";
-import * as ImagePicker from "expo-image-picker";
-import { GestureHandlerRootView } from "react-native-gesture-handler";
-import { PrimaryButton } from "../base/Button";
-import DefaultImage from "../base/imgs/FlipImage";
-import FlipStyles from "@/styles";
+﻿import { tImageItem } from "@/app/(score)/createScoreModal";
 import { useFlipTheme } from "@/common";
+import FlipStyles from "@/styles";
+import * as ImagePicker from "expo-image-picker";
+import { useEffect, useRef } from "react";
+import { FlatList, StyleSheet, TouchableOpacity, View } from "react-native";
 import DefaultText from "../base/Text";
+import DefaultImage from "../base/imgs/FlipImage";
 import FlipIcon from "../base/imgs/FlipIcon";
-import { tImageItem } from "@/app/(score)/createScoreModal";
 
-// ✅ 이미지 타입 정의
-
-const ImageUpload: React.FC<{
+type ImageUploadProps = {
     images: tImageItem[];
+    autoOpen?: boolean;
     handleSelectImage: (image: tImageItem[]) => void;
     handleDeleteImage: (uri: string) => void;
-}> = ({ images, handleSelectImage, handleDeleteImage }) => {
-    const theme = useFlipTheme();
+    handleMoveImage: (uri: string, direction: "left" | "right") => void;
+};
 
-    // ✅ 멀티 이미지 선택
-    const pickImages = async (): Promise<void> => {
+const ImageUpload = ({ images, autoOpen = false, handleSelectImage, handleDeleteImage, handleMoveImage }: ImageUploadProps) => {
+    const theme = useFlipTheme();
+    const hasTriggeredAutoOpen = useRef(false);
+
+    const pickImages = async () => {
         const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (status !== "granted") {
-            Alert.alert("권한 필요", "이미지를 선택하려면 갤러리 접근 권한이 필요합니다.");
             return;
         }
 
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ["images"],
-            allowsMultipleSelection: true, // ✅ 멀티 선택 가능하도록 설정
+            allowsMultipleSelection: true,
             quality: 1
         });
-        if (!result.canceled) {
-            const selectedImages = result.assets.map((asset, index) => ({
-                uri: asset.uri,
-                order: images.length + index + 1 // 기존 이미지 개수 이후부터 순번 지정
-            }));
-            console.log(selectedImages, "selectedImages");
-            handleSelectImage(selectedImages); // 기존 이미지에 추가
+
+        if (result.canceled) {
+            return;
         }
+
+        const selectedImages = result.assets.map((asset, index) => ({
+            uri: asset.uri,
+            order: images.length + index + 1
+        }));
+
+        handleSelectImage(selectedImages);
     };
 
-    // ✅ 이미지 업로드
+    useEffect(() => {
+        if (!autoOpen || hasTriggeredAutoOpen.current) {
+            return;
+        }
+
+        hasTriggeredAutoOpen.current = true;
+        void pickImages();
+    }, [autoOpen]);
 
     return (
         <View style={styles.container}>
-            {/* ✅ 이미지 순서 변경 가능 */}
-            <GestureHandlerRootView>
-                <FlatList
-                    data={[{ order: 0, uri: "upload" }, ...images]}
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={{ gap: FlipStyles.adjustScale(16) }}
-                    keyExtractor={(item, index) => `image-${index}`}
-                    renderItem={({ item, index }) => {
-                        if (index === 0) {
-                            return (
+            <FlatList
+                data={[{ order: 0, uri: "upload" }, ...images]}
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.listContent}
+                keyExtractor={item => `${item.uri}-${item.order}`}
+                renderItem={({ item, index }) => {
+                    if (index === 0) {
+                        return (
+                            <TouchableOpacity
+                                style={[
+                                    styles.imageUploadButton,
+                                    {
+                                        backgroundColor: theme.gray8,
+                                        borderColor: theme.gray6
+                                    }
+                                ]}
+                                onPress={pickImages}
+                            >
+                                <FlipIcon size={16} icon="icon-score-add" />
+                                <DefaultText Body2 color={theme.gray4}>
+                                    악보 추가
+                                </DefaultText>
+                            </TouchableOpacity>
+                        );
+                    }
+
+                    return (
+                        <View style={styles.imageContainer}>
+                            <DefaultImage uri={item.uri} style={styles.image} />
+                            <View style={styles.badge}>
+                                <DefaultText Button3 weight="700" color={theme.white}>
+                                    {item.order}
+                                </DefaultText>
+                            </View>
+                            <TouchableOpacity style={styles.deleteButton} onPress={() => handleDeleteImage(item.uri)}>
+                                <FlipIcon size={24} icon="icon-delete" />
+                            </TouchableOpacity>
+                            <View style={styles.moveButtonRow}>
                                 <TouchableOpacity
-                                    style={[
-                                        styles.imageUploadBtn,
-                                        {
-                                            backgroundColor: theme.gray8
-                                        }
-                                    ]}
-                                    onPress={pickImages}
+                                    style={[styles.moveButton, { backgroundColor: theme.white }]}
+                                    onPress={() => handleMoveImage(item.uri, "left")}
                                 >
-                                    <FlipIcon size={16} icon="icon-score-add" />
-                                    <DefaultText Body2 color={theme.gray4}>
-                                        악보추가
+                                    <DefaultText Button3 weight="700" color={theme.gray2}>
+                                        이전
                                     </DefaultText>
                                 </TouchableOpacity>
-                            );
-                        }
-                        return (
-                            <View style={[styles.imageContainer]}>
-                                <TouchableOpacity onPress={() => handleDeleteImage(item.uri)} style={[styles.closeBtn]}>
-                                    <FlipIcon size={24} icon="icon-delete" />
+                                <TouchableOpacity
+                                    style={[styles.moveButton, { backgroundColor: theme.white }]}
+                                    onPress={() => handleMoveImage(item.uri, "right")}
+                                >
+                                    <DefaultText Button3 weight="700" color={theme.gray2}>
+                                        다음
+                                    </DefaultText>
                                 </TouchableOpacity>
-                                <DefaultImage uri={item.uri} style={styles.image} />
                             </View>
-                        );
-                    }}
-                />
-            </GestureHandlerRootView>
+                        </View>
+                    );
+                }}
+            />
         </View>
     );
 };
@@ -101,38 +122,59 @@ const ImageUpload: React.FC<{
 export default ImageUpload;
 
 const styles = StyleSheet.create({
-    container: { flex: 1, flexDirection: "row", justifyContent: "center", alignItems: "center", padding: 10 },
-    imageContainer: {
-        alignItems: "center",
-        position: "relative",
-        height: FlipStyles.adjustScale(192),
-        width: FlipStyles.adjustScale(273)
+    container: {
+        flex: 1
     },
-    closeBtn: {
-        zIndex: 1,
-        position: "absolute",
-        top: FlipStyles.adjustScale(4),
-        width: FlipStyles.adjustScale(24),
-        height: FlipStyles.adjustScale(24),
-        right: FlipStyles.adjustScale(4),
-        justifyContent: "center",
-        alignItems: "center"
+    listContent: {
+        gap: FlipStyles.adjustScale(16),
+        paddingVertical: FlipStyles.adjustScale(8)
+    },
+    imageContainer: {
+        position: "relative",
+        width: FlipStyles.adjustScale(273),
+        height: FlipStyles.adjustScale(216),
+        gap: FlipStyles.adjustScale(8)
     },
     image: {
         width: FlipStyles.adjustScale(273),
         height: FlipStyles.adjustScale(192),
         borderRadius: FlipStyles.adjustScale(8)
     },
-    orderText: { fontSize: FlipStyles.adjustScale(14), fontWeight: "bold" },
-    activeImage: { opacity: 0.8 },
-    imageUploadBtn: {
+    badge: {
+        position: "absolute",
+        left: FlipStyles.adjustScale(8),
+        top: FlipStyles.adjustScale(8),
+        width: FlipStyles.adjustScale(28),
+        height: FlipStyles.adjustScale(28),
+        borderRadius: FlipStyles.adjustScale(14),
+        backgroundColor: "#111827",
+        justifyContent: "center",
+        alignItems: "center"
+    },
+    deleteButton: {
+        position: "absolute",
+        right: FlipStyles.adjustScale(4),
+        top: FlipStyles.adjustScale(4),
+        zIndex: 1
+    },
+    moveButtonRow: {
+        flexDirection: "row",
+        gap: FlipStyles.adjustScale(8)
+    },
+    moveButton: {
+        minWidth: FlipStyles.adjustScale(68),
+        height: FlipStyles.adjustScale(32),
+        borderRadius: FlipStyles.adjustScale(16),
+        justifyContent: "center",
+        alignItems: "center"
+    },
+    imageUploadButton: {
         flexDirection: "row",
         gap: FlipStyles.adjustScale(4),
         width: FlipStyles.adjustScale(273),
-        borderRadius: FlipStyles.adjustScale(8),
         height: FlipStyles.adjustScale(192),
-        borderWidth: FlipStyles.adjustScale(1),
-        borderColor: "#E6E0E9",
+        borderRadius: FlipStyles.adjustScale(8),
+        borderWidth: 1,
         justifyContent: "center",
         alignItems: "center"
     }
