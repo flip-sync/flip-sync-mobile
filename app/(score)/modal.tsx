@@ -13,6 +13,7 @@ import { isAxiosError } from "axios";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { Alert } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const COPY = {
     participants: "참여 인원",
@@ -26,6 +27,7 @@ const COPY = {
 export default function RoomModal() {
     const theme = useFlipTheme();
     const router = useRouter();
+    const insets = useSafeAreaInsets();
     const { groupId, roomName, currentMemberCount, maxMemberCount, hasPassword } = useLocalSearchParams<{
         groupId: string;
         roomName?: string;
@@ -168,7 +170,14 @@ export default function RoomModal() {
                     </View>
                 )}
             </View>
-            <View style={styles.bottomContainer}>
+            <View
+                style={[
+                    styles.bottomContainer,
+                    {
+                        paddingBottom: FlipStyles.adjustScale(20) + insets.bottom
+                    }
+                ]}
+            >
                 <TouchableOpacity
                     onPress={handleJoin}
                     disabled={isRoomFull}
