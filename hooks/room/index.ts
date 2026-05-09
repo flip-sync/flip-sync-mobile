@@ -7,6 +7,18 @@ export const useRoom = (props?: { groupId: number }) => {
     const queryClient = useQueryClient();
     const activeOrganization = useActiveOrganizationSession();
     const activeOrganizationId = activeOrganization?.id;
+    const refreshRoomCaches = (groupId?: number) => {
+        void Promise.all([
+            queryClient.invalidateQueries({ queryKey: ["rooms", activeOrganizationId] }),
+            queryClient.invalidateQueries({ queryKey: ["my-rooms", activeOrganizationId] }),
+            groupId
+                ? queryClient.invalidateQueries({ queryKey: ["room", activeOrganizationId, groupId] })
+                : Promise.resolve(),
+            groupId
+                ? queryClient.invalidateQueries({ queryKey: ["room-summary", activeOrganizationId, groupId] })
+                : Promise.resolve()
+        ]);
+    };
     const {
         data: roomList,
         fetchNextPage: nextRoomList,
@@ -64,11 +76,10 @@ export const useRoom = (props?: { groupId: number }) => {
     });
     const { mutateAsync: leaveRoom, isPending: isLeavingRoom } = useMutation({
         mutationFn: (payload: tLeaveRoom) => roomApi.leaveRoom(payload),
-        onSuccess: async (_response, payload) => {
-            await queryClient.invalidateQueries({ queryKey: ["rooms", activeOrganizationId] });
-            await queryClient.invalidateQueries({ queryKey: ["my-rooms", activeOrganizationId] });
-            await queryClient.invalidateQueries({ queryKey: ["room", activeOrganizationId, payload.groupId] });
-            await queryClient.invalidateQueries({ queryKey: ["room-summary", activeOrganizationId, payload.groupId] });
+        onSuccess: (_response, payload) => {
+            queryClient.removeQueries({ queryKey: ["room", activeOrganizationId, payload.groupId] });
+            queryClient.removeQueries({ queryKey: ["room-summary", activeOrganizationId, payload.groupId] });
+            refreshRoomCaches(payload.groupId);
         }
     });
     const { mutateAsync: transferRoomOwner, isPending: isTransferringRoomOwner } = useMutation({
@@ -82,11 +93,10 @@ export const useRoom = (props?: { groupId: number }) => {
     });
     const { mutateAsync: deleteRoom, isPending: isDeletingRoom } = useMutation({
         mutationFn: (groupId: number) => roomApi.deleteRoom(groupId),
-        onSuccess: async (_response, groupId) => {
-            await queryClient.invalidateQueries({ queryKey: ["rooms", activeOrganizationId] });
-            await queryClient.invalidateQueries({ queryKey: ["my-rooms", activeOrganizationId] });
-            await queryClient.invalidateQueries({ queryKey: ["room", activeOrganizationId, groupId] });
-            await queryClient.invalidateQueries({ queryKey: ["room-summary", activeOrganizationId, groupId] });
+        onSuccess: (_response, groupId) => {
+            queryClient.removeQueries({ queryKey: ["room", activeOrganizationId, groupId] });
+            queryClient.removeQueries({ queryKey: ["room-summary", activeOrganizationId, groupId] });
+            refreshRoomCaches(groupId);
         }
     });
     const refreshRoomLists = async () => {
