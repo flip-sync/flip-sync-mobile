@@ -1,5 +1,5 @@
 import { roomApi } from "@/api/room";
-import { tCreateRoom, tJoinRoom, tLeaveRoom, tTransferRoomOwner } from "@/api/room";
+import { tCreateRoom, tJoinRoom, tKickRoomMember, tLeaveRoom, tTransferRoomOwner } from "@/api/room";
 import { useActiveOrganizationSession } from "@/common";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -99,6 +99,12 @@ export const useRoom = (props?: { groupId: number }) => {
             refreshRoomCaches(groupId);
         }
     });
+    const { mutateAsync: kickRoomMember, isPending: isKickingRoomMember } = useMutation({
+        mutationFn: (payload: tKickRoomMember) => roomApi.kickRoomMember(payload),
+        onSuccess: (_response, payload) => {
+            refreshRoomCaches(payload.groupId);
+        }
+    });
     const refreshRoomLists = async () => {
         await Promise.all([refetchRoomList(), refetchMyRoomList()]);
     };
@@ -122,6 +128,8 @@ export const useRoom = (props?: { groupId: number }) => {
         transferRoomOwner,
         isTransferringRoomOwner,
         deleteRoom,
-        isDeletingRoom
+        isDeletingRoom,
+        kickRoomMember,
+        isKickingRoomMember
     };
 };

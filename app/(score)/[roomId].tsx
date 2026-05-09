@@ -67,7 +67,9 @@ export default function Room() {
         transferRoomOwner,
         isTransferringRoomOwner,
         deleteRoom,
-        isDeletingRoom
+        isDeletingRoom,
+        kickRoomMember,
+        isKickingRoomMember
     } = useRoom({
         groupId
     });
@@ -102,11 +104,16 @@ export default function Room() {
     const isCreator = roomSummary?.data.currentUserIsCreator ?? false;
     const currentUserId = roomSummary?.data.currentUserId;
     const groupMembers = groupDetail?.data ?? [];
+    const groupMemberIds = useMemo(() => new Set(groupMembers.map(member => member.id)), [groupMembers]);
+    const connectedGroupMemberCount = useMemo(
+        () => connectedUsers.filter(member => groupMemberIds.has(member.userId)).length,
+        [connectedUsers, groupMemberIds]
+    );
     const scores = useMemo(
         () => [...(scoreList?.pages.flatMap(page => page.data.content) ?? [])].sort(compareScoreByNewest),
         [scoreList?.pages]
     );
-    const participantCountLabel = `${connectedUsers.length}/${Math.max(groupMembers.length, connectedUsers.length || 1)}명`;
+    const participantCountLabel = `${connectedGroupMemberCount}/${Math.max(groupMembers.length, 1)}명`;
     const canJoinSharedView = !isCreator && sharedScoreSession != null && !isJoinedSharedView;
     const prependScoreSummaryToCache = useCallback(
         (scoreSummary: tScoreSummary) => {
@@ -430,6 +437,21 @@ export default function Room() {
         ]);
     }, [deleteRoom, groupId, router]);
 
+    const handleKickMember = useCallback(
+        async (targetUserId: number, targetUserName: string) => {
+            try {
+                await kickRoomMember({
+                    groupId,
+                    targetUserId
+                });
+                Alert.alert("강퇴 완료", `${targetUserName}님을 방에서 내보냈습니다.`);
+            } catch {
+                Alert.alert("강퇴 실패", "멤버를 강퇴하지 못했습니다. 잠시 후 다시 시도해주세요.");
+            }
+        },
+        [groupId, kickRoomMember]
+    );
+
     const renderScoreCard = useCallback(
         ({ item }: { item: tScoreSummary }) => (
             <ScoreSummaryCard
@@ -571,7 +593,9 @@ export default function Room() {
                 creatorId={creatorId}
                 currentUserId={currentUserId}
                 isCreator={isCreator}
-                isProcessingRoomAction={isLeavingRoom || isTransferringRoomOwner || isDeletingRoom}
+                isProcessingRoomAction={
+                    isLeavingRoom || isTransferringRoomOwner || isDeletingRoom || isKickingRoomMember
+                }
                 connectedMembers={connectedUsers}
                 groupMembers={groupMembers}
                 onClose={() => setIsSidebarVisible(false)}
@@ -579,6 +603,7 @@ export default function Room() {
                 onLeaveRoom={handleLeaveRoom}
                 onTransferOwner={handleTransferOwner}
                 onDeleteRoom={handleDeleteRoom}
+                onKickMember={handleKickMember}
             />
 
             <ScoreViewerModal

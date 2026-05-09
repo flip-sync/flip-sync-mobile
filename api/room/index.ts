@@ -22,6 +22,11 @@ export type tTransferRoomOwner = {
     delegateUserId: number;
 };
 
+export type tKickRoomMember = {
+    groupId: number;
+    targetUserId: number;
+};
+
 export type tRoomList = tRoom[];
 
 export type tRoom = {
@@ -85,6 +90,7 @@ export interface IRoomApi {
     leaveRoom: (room: tLeaveRoom) => Promise<IApiResponse<void>>;
     transferRoomOwner: (room: tTransferRoomOwner) => Promise<IApiResponse<void>>;
     deleteRoom: (groupId: number) => Promise<IApiResponse<void>>;
+    kickRoomMember: (payload: tKickRoomMember) => Promise<IApiResponse<void>>;
 }
 
 export const roomApi: IRoomApi = {
@@ -145,5 +151,8 @@ export const roomApi: IRoomApi = {
     },
     deleteRoom: groupId => {
         return baseUrl.delete(`/group/${groupId}`);
+    },
+    kickRoomMember: payload => {
+        return baseUrl.delete(`/group/${payload.groupId}/users/${payload.targetUserId}`);
     }
 };

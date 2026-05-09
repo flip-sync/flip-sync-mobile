@@ -33,6 +33,7 @@ type RoomSidebarProps = {
     onLeaveRoom: (delegateUserId?: number) => Promise<void>;
     onTransferOwner: (delegateUserId: number) => Promise<void>;
     onDeleteRoom: () => void;
+    onKickMember: (targetUserId: number, targetUserName: string) => Promise<void>;
 };
 
 export const RoomSidebar = ({
@@ -49,7 +50,8 @@ export const RoomSidebar = ({
     onInvite,
     onLeaveRoom,
     onTransferOwner,
-    onDeleteRoom
+    onDeleteRoom,
+    onKickMember
 }: RoomSidebarProps) => {
     const theme = useFlipTheme();
     const [delegateMode, setDelegateMode] = useState<"leave" | "transfer" | null>(null);
@@ -69,12 +71,16 @@ export const RoomSidebar = ({
 
         connectedMembers.forEach(member => {
             const existingMember = memberMap.get(member.userId);
+            if (!existingMember) {
+                return;
+            }
+
             memberMap.set(member.userId, {
                 userId: member.userId,
-                userName: existingMember?.userName ?? member.userName,
-                isCreator: existingMember?.isCreator ?? member.isCreator,
+                userName: existingMember.userName,
+                isCreator: existingMember.isCreator,
                 isConnected: true,
-                profileImageUrl: existingMember?.profileImageUrl ?? member.profileImageUrl
+                profileImageUrl: existingMember.profileImageUrl ?? member.profileImageUrl
             });
         });
 
@@ -163,6 +169,26 @@ export const RoomSidebar = ({
         void onTransferOwner(delegateUserId).then(() => setDelegateMode(null));
     };
 
+    const handleKickPress = (member: VisibleRoomMember) => {
+        if (isProcessingRoomAction) {
+            return;
+        }
+
+        Alert.alert("멤버 강퇴", `${member.userName}님을 이 방에서 내보낼까요?`, [
+            {
+                text: "취소",
+                style: "cancel"
+            },
+            {
+                text: "강퇴",
+                style: "destructive",
+                onPress: () => {
+                    void onKickMember(member.userId, member.userName);
+                }
+            }
+        ]);
+    };
+
     const handleClose = () => {
         setDelegateMode(null);
         onClose();
@@ -201,33 +227,32 @@ export const RoomSidebar = ({
                     </TouchableOpacity>
                 </View>
 
-                <TouchableOpacity
-                    activeOpacity={0.9}
-                    onPress={onInvite}
-                    style={[styles.inviteButton, { backgroundColor: theme.primaryLight }]}
-                >
-                    <DefaultText Button2 weight="700" color={theme.primary}>
-                        초대하기
-                    </DefaultText>
-                </TouchableOpacity>
-
                 <View style={styles.actionSection}>
+                    <TouchableOpacity
+                        activeOpacity={0.9}
+                        disabled={isProcessingRoomAction}
+                        onPress={onInvite}
+                        style={[styles.actionIconButton, { opacity: isProcessingRoomAction ? 0.5 : 1 }]}
+                    >
+                        <View style={[styles.actionIconCircle, { backgroundColor: theme.primaryLight }]}>
+                            <FlipIcon icon="icon-plus" size={18} color={theme.primary} />
+                        </View>
+                        <DefaultText Button3 weight="700" color={theme.gray3}>
+                            초대
+                        </DefaultText>
+                    </TouchableOpacity>
                     {isCreator && (
                         <TouchableOpacity
                             activeOpacity={0.9}
                             disabled={isProcessingRoomAction}
                             onPress={handleTransferPress}
-                            style={[
-                                styles.actionButton,
-                                {
-                                    backgroundColor: theme.gray8,
-                                    borderColor: theme.gray7,
-                                    opacity: isProcessingRoomAction ? 0.5 : 1
-                                }
-                            ]}
+                            style={[styles.actionIconButton, { opacity: isProcessingRoomAction ? 0.5 : 1 }]}
                         >
+                            <View style={[styles.actionIconCircle, { backgroundColor: theme.gray8 }]}>
+                                <FlipIcon icon="icon-users" size={18} color={theme.gray3} />
+                            </View>
                             <DefaultText Button3 weight="700" color={theme.gray2}>
-                                방장 위임
+                                위임
                             </DefaultText>
                         </TouchableOpacity>
                     )}
@@ -235,17 +260,13 @@ export const RoomSidebar = ({
                         activeOpacity={0.9}
                         disabled={isProcessingRoomAction}
                         onPress={handleLeavePress}
-                        style={[
-                            styles.actionButton,
-                            {
-                                backgroundColor: theme.gray8,
-                                borderColor: theme.gray7,
-                                opacity: isProcessingRoomAction ? 0.5 : 1
-                            }
-                        ]}
+                        style={[styles.actionIconButton, { opacity: isProcessingRoomAction ? 0.5 : 1 }]}
                     >
+                        <View style={[styles.actionIconCircle, { backgroundColor: theme.gray8 }]}>
+                            <FlipIcon icon="icon-back" size={18} color={theme.gray3} />
+                        </View>
                         <DefaultText Button3 weight="700" color={theme.gray2}>
-                            방 나가기
+                            나가기
                         </DefaultText>
                     </TouchableOpacity>
                     {isCreator && (
@@ -253,17 +274,13 @@ export const RoomSidebar = ({
                             activeOpacity={0.9}
                             disabled={isProcessingRoomAction}
                             onPress={onDeleteRoom}
-                            style={[
-                                styles.actionButton,
-                                {
-                                    backgroundColor: "#FFF1F1",
-                                    borderColor: "#FFD1D1",
-                                    opacity: isProcessingRoomAction ? 0.5 : 1
-                                }
-                            ]}
+                            style={[styles.actionIconButton, { opacity: isProcessingRoomAction ? 0.5 : 1 }]}
                         >
+                            <View style={[styles.actionIconCircle, { backgroundColor: "#FFF1F1" }]}>
+                                <FlipIcon icon="icon-delete" size={18} color="#E54747" />
+                            </View>
                             <DefaultText Button3 weight="800" color="#E54747">
-                                방 삭제
+                                삭제
                             </DefaultText>
                         </TouchableOpacity>
                     )}
@@ -345,6 +362,23 @@ export const RoomSidebar = ({
                                     </DefaultText>
                                 </View>
                             )}
+                            {isCreator && member.userId !== currentUserId && !member.isCreator && (
+                                <TouchableOpacity
+                                    activeOpacity={0.85}
+                                    disabled={isProcessingRoomAction}
+                                    onPress={() => handleKickPress(member)}
+                                    style={[
+                                        styles.kickButton,
+                                        {
+                                            backgroundColor: "#FFF1F1",
+                                            borderColor: "#FFD1D1",
+                                            opacity: isProcessingRoomAction ? 0.5 : 1
+                                        }
+                                    ]}
+                                >
+                                    <FlipIcon icon="icon-delete" size={14} color="#E54747" />
+                                </TouchableOpacity>
+                            )}
                         </View>
                     ))}
 
@@ -391,24 +425,24 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center"
     },
-    inviteButton: {
-        height: FlipStyles.adjustScale(44),
-        borderRadius: FlipStyles.adjustScale(12),
-        marginTop: FlipStyles.adjustScale(20),
-        alignItems: "center",
-        justifyContent: "center"
-    },
     actionSection: {
-        marginTop: FlipStyles.adjustScale(12),
+        marginTop: FlipStyles.adjustScale(18),
+        flexDirection: "row",
         gap: FlipStyles.adjustScale(8)
     },
-    actionButton: {
-        minHeight: FlipStyles.adjustScale(40),
-        borderRadius: FlipStyles.adjustScale(12),
-        borderWidth: 1,
+    actionIconButton: {
+        flex: 1,
+        minWidth: FlipStyles.adjustScale(56),
         alignItems: "center",
         justifyContent: "center",
-        paddingHorizontal: FlipStyles.adjustScale(12)
+        gap: FlipStyles.adjustScale(6)
+    },
+    actionIconCircle: {
+        width: FlipStyles.adjustScale(42),
+        height: FlipStyles.adjustScale(42),
+        borderRadius: FlipStyles.adjustScale(16),
+        alignItems: "center",
+        justifyContent: "center"
     },
     delegatePanel: {
         marginTop: FlipStyles.adjustScale(12),
@@ -473,6 +507,14 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         paddingHorizontal: FlipStyles.adjustScale(8)
+    },
+    kickButton: {
+        width: FlipStyles.adjustScale(30),
+        height: FlipStyles.adjustScale(30),
+        borderRadius: FlipStyles.adjustScale(15),
+        borderWidth: 1,
+        alignItems: "center",
+        justifyContent: "center"
     },
     emptyState: {
         paddingVertical: FlipStyles.adjustScale(24),
