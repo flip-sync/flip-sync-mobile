@@ -119,12 +119,7 @@ export default function SignIn() {
 
       const inviteGroupId = getRouteValue(params.inviteGroupId);
       if (inviteGroupId) {
-        router.replace({
-          pathname: "/(auth)/organization-select",
-          params: {
-            inviteGroupId: String(inviteGroupId)
-          }
-        });
+        router.replace(`/invite/${inviteGroupId}`);
         return;
       }
 
@@ -161,6 +156,15 @@ export default function SignIn() {
           showsVerticalScrollIndicator={false}
         >
           <View style={[styles.card, { backgroundColor: theme.white }]}>
+            <Pressable
+              onPress={() => router.push("/app-info")}
+              style={[styles.appInfoButton, { borderColor: theme.primaryLight, backgroundColor: theme.white }]}
+            >
+              <DefaultText Button3 weight="700" color={theme.primary}>
+                앱 정보
+              </DefaultText>
+            </Pressable>
+
             <View style={styles.heroBlock}>
               <DefaultText Title2 weight="800" color={theme.gray2}>
                 FlipSync
@@ -326,10 +330,23 @@ const styles = StyleSheet.create({
     paddingVertical: FlipStyles.adjustScale(28)
   },
   card: {
+    position: "relative",
     borderRadius: FlipStyles.adjustScale(28),
     paddingHorizontal: FlipStyles.adjustScale(20),
     paddingVertical: FlipStyles.adjustScale(24),
     ...FlipStyles.baseBoxShadow
+  },
+  appInfoButton: {
+    position: "absolute",
+    top: FlipStyles.adjustScale(14),
+    right: FlipStyles.adjustScale(14),
+    minHeight: FlipStyles.adjustScale(32),
+    borderWidth: 1,
+    borderRadius: FlipStyles.adjustScale(999),
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: FlipStyles.adjustScale(12),
+    zIndex: 2
   },
   heroBlock: {
     marginBottom: FlipStyles.adjustScale(20)
@@ -402,4 +419,3 @@ const styles = StyleSheet.create({
     height: FlipStyles.adjustScale(12)
   }
 });
-

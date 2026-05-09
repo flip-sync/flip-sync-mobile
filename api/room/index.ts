@@ -12,6 +12,16 @@ export type tJoinRoom = {
     password?: string;
 };
 
+export type tLeaveRoom = {
+    groupId: number;
+    delegateUserId?: number;
+};
+
+export type tTransferRoomOwner = {
+    groupId: number;
+    delegateUserId: number;
+};
+
 export type tRoomList = tRoom[];
 
 export type tRoom = {
@@ -45,13 +55,36 @@ export type tRoomSummary = {
     hasPassword: boolean;
 };
 
+export type tRoomInviteInfo = {
+    groupId: number;
+    groupName: string;
+    organizationId: number;
+    organizationName: string;
+    organizationInviteCode: string;
+    organizationCreatorId: number;
+    organizationCreatorName: string;
+    organizationMemberCount: number;
+    organizationRole: "LEADER" | "MEMBER";
+    organizationIsLeader: boolean;
+    creatorId: number;
+    creatorName: string;
+    currentMemberCount: number;
+    maxMemberCount: number;
+    hasPassword: boolean;
+    joined: boolean;
+};
+
 export interface IRoomApi {
     getRoomList: (pageParam: number) => Promise<IApiResponse<IPagination<tRoomList>>>;
     getMyRoomList: () => Promise<IApiResponse<IPagination<tRoomList>>>;
     getRoomInfo: (groupId?: number) => Promise<IApiResponse<tRoomDetail[]>>;
     getRoomSummary: (groupId?: number) => Promise<IApiResponse<tRoomSummary>>;
+    getRoomInviteInfo: (groupId: number) => Promise<IApiResponse<tRoomInviteInfo>>;
     createRoom: (room: tCreateRoom) => Promise<IApiResponse<number>>;
     joinRoom: (room: tJoinRoom) => Promise<IApiResponse<void>>;
+    leaveRoom: (room: tLeaveRoom) => Promise<IApiResponse<void>>;
+    transferRoomOwner: (room: tTransferRoomOwner) => Promise<IApiResponse<void>>;
+    deleteRoom: (groupId: number) => Promise<IApiResponse<void>>;
 }
 
 export const roomApi: IRoomApi = {
@@ -81,6 +114,9 @@ export const roomApi: IRoomApi = {
     getRoomSummary: groupId => {
         return baseUrl.get(`/group/${groupId}`);
     },
+    getRoomInviteInfo: groupId => {
+        return baseUrl.get(`/group/invite/${groupId}`);
+    },
     createRoom: room => {
         return baseUrl.post("/group", {
             name: room.name,
@@ -93,5 +129,21 @@ export const roomApi: IRoomApi = {
             groupId: room.groupId,
             password: room.password ?? ""
         });
+    },
+    leaveRoom: room => {
+        return baseUrl.delete("/group/leave", {
+            params: {
+                groupId: room.groupId,
+                delegateUserId: room.delegateUserId
+            }
+        });
+    },
+    transferRoomOwner: room => {
+        return baseUrl.patch(`/group/${room.groupId}/owner`, {
+            delegateUserId: room.delegateUserId
+        });
+    },
+    deleteRoom: groupId => {
+        return baseUrl.delete(`/group/${groupId}`);
     }
 };
