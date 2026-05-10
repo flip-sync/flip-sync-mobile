@@ -1,5 +1,7 @@
 ﻿import { Stack } from "expo-router";
 
+import { CompactHeader } from "@/components/base/CompactHeader";
+
 export default function ScoreTabLayout() {
     return (
         <Stack
@@ -51,7 +53,14 @@ export default function ScoreTabLayout() {
                 name="organization-info"
                 options={{
                     headerShown: true,
-                    title: "소속 정보"
+                    header: () => <CompactHeader title="소속 정보" />
+                }}
+            />
+            <Stack.Screen
+                name="app-info"
+                options={{
+                    headerShown: true,
+                    header: () => <CompactHeader title="앱 정보" />
                 }}
             />
             <Stack.Screen

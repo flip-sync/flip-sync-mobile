@@ -10,13 +10,19 @@ import { useOrganizationScoreLibrary, useScore } from "@/hooks/score";
 import FlipStyles from "@/styles";
 import { useLocalSearchParams, useNavigation, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Alert, Platform, StatusBar, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Alert, Pressable, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export type tImageItem = {
     uri: string;
     order: number;
+    fileName?: string | null;
+    mimeType?: string | null;
+    fileSize?: number | null;
 };
+
+const MAX_SCORE_IMAGE_FILE_SIZE_BYTES = 20 * 1024 * 1024;
+const MAX_SCORE_IMAGE_REQUEST_SIZE_BYTES = 50 * 1024 * 1024;
 
 const normalizeOrders = (images: tImageItem[]) => images.map((image, index) => ({ ...image, order: index + 1 }));
 
@@ -31,7 +37,7 @@ export default function CreateScoreModal() {
     const { createScore } = useScore({
         groupId
     });
-    const { createOrganizationScore } = useOrganizationScoreLibrary({
+    const { createOrganizationScore, sendOrganizationScoreToGroup } = useOrganizationScoreLibrary({
         enabled: isLibraryMode
     });
 
@@ -40,6 +46,7 @@ export default function CreateScoreModal() {
     const [code, setCode] = useState("");
     const [uploading, setUploading] = useState(false);
     const [images, setImages] = useState<tImageItem[]>([]);
+    const [saveToLibrary, setSaveToLibrary] = useState(false);
 
     const handleSelectImage = useCallback((selectedImages: tImageItem[]) => {
         setImages(prevImages => normalizeOrders([...prevImages, ...selectedImages]));
@@ -83,6 +90,18 @@ export default function CreateScoreModal() {
             return;
         }
 
+        const oversizedImage = images.find(image => (image.fileSize ?? 0) > MAX_SCORE_IMAGE_FILE_SIZE_BYTES);
+        if (oversizedImage) {
+            Alert.alert("이미지 용량이 너무 큽니다.", "이미지는 한 장당 20MB 이하로 선택해 주세요.");
+            return;
+        }
+
+        const knownTotalImageSize = images.reduce((total, image) => total + (image.fileSize ?? 0), 0);
+        if (knownTotalImageSize > MAX_SCORE_IMAGE_REQUEST_SIZE_BYTES) {
+            Alert.alert("이미지 용량이 너무 큽니다.", "한 번에 등록하는 악보 이미지는 총 50MB 이하로 선택해 주세요.");
+            return;
+        }
+
         try {
             setUploading(true);
 
@@ -94,8 +113,8 @@ export default function CreateScoreModal() {
             images.forEach((image, index) => {
                 formData.append(`imageList[${index}].file`, {
                     uri: image.uri,
-                    name: `score_${Date.now()}_${index}.jpg`,
-                    type: "image/jpeg"
+                    name: image.fileName ?? `score_${Date.now()}_${index}.jpg`,
+                    type: image.mimeType ?? "image/jpeg"
                 } as unknown as File);
                 formData.append(`imageList[${index}].order`, String(image.order));
             });
@@ -104,6 +123,14 @@ export default function CreateScoreModal() {
                 await createOrganizationScore({
                     formData
                 });
+            } else if (saveToLibrary) {
+                const organizationScore = await createOrganizationScore({
+                    formData
+                });
+                await sendOrganizationScoreToGroup({
+                    scoreId: organizationScore.data,
+                    groupId
+                });
             } else {
                 await createScore({
                     groupId,
@@ -111,7 +138,13 @@ export default function CreateScoreModal() {
                 });
             }
 
-            Alert.alert(isLibraryMode ? "악보 창고에 등록했습니다." : "악보를 등록했습니다.");
+            Alert.alert(
+                isLibraryMode
+                    ? "악보 창고에 등록했습니다."
+                    : saveToLibrary
+                      ? "악보 창고에 저장하고 채팅방에 보냈습니다."
+                      : "악보를 등록했습니다."
+            );
             router.back();
         } catch (error) {
             const message = error instanceof Error ? error.message : "악보 등록에 실패했습니다.";
@@ -119,7 +152,19 @@ export default function CreateScoreModal() {
         } finally {
             setUploading(false);
         }
-    }, [code, createOrganizationScore, createScore, groupId, images, isLibraryMode, router, scoreTitle, singer]);
+    }, [
+        code,
+        createOrganizationScore,
+        createScore,
+        groupId,
+        images,
+        isLibraryMode,
+        router,
+        saveToLibrary,
+        scoreTitle,
+        sendOrganizationScoreToGroup,
+        singer
+    ]);
 
     useEffect(() => {
         navigation.setOptions({
@@ -138,10 +183,10 @@ export default function CreateScoreModal() {
 
     return (
         <SafeAreaView
+            edges={["top", "left", "right", "bottom"]}
             style={[
                 styles.container,
                 {
-                    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0,
                     backgroundColor: theme.white
                 }
             ]}
@@ -155,8 +200,9 @@ export default function CreateScoreModal() {
                         onChange={setCode}
                         options={SCORE_CODE_OPTIONS}
                         placeholder="코드 선택"
-                        searchPlaceholder="코드 검색"
+                        searchPlaceholder="검색하기"
                         containerStyle={styles.codeSelector}
+                        dropdownWidth={FlipStyles.adjustScale(260)}
                     />
                 </RowView>
                 <View style={styles.uploadGuide}>
@@ -176,6 +222,38 @@ export default function CreateScoreModal() {
                         handleMoveImage={handleMoveImage}
                     />
                 </View>
+                {!isLibraryMode && (
+                    <Pressable
+                        accessibilityRole="checkbox"
+                        accessibilityState={{ checked: saveToLibrary }}
+                        onPress={() => setSaveToLibrary(current => !current)}
+                        style={[styles.libraryCheckRow, { borderColor: theme.gray7, backgroundColor: theme.gray8 }]}
+                    >
+                        <View
+                            style={[
+                                styles.checkbox,
+                                {
+                                    borderColor: saveToLibrary ? theme.primary : theme.gray6,
+                                    backgroundColor: saveToLibrary ? theme.primary : theme.white
+                                }
+                            ]}
+                        >
+                            {saveToLibrary && (
+                                <DefaultText Button3 weight="800" color={theme.white}>
+                                    ✓
+                                </DefaultText>
+                            )}
+                        </View>
+                        <View style={styles.libraryCheckCopy}>
+                            <DefaultText Body2 weight="700" color={theme.gray2}>
+                                악보 창고에 등록하시겠습니까?
+                            </DefaultText>
+                            <DefaultText Button3 color={theme.gray5}>
+                                체크하면 악보 창고에 저장한 뒤 현재 채팅방에도 보냅니다.
+                            </DefaultText>
+                        </View>
+                    </Pressable>
+                )}
             </View>
         </SafeAreaView>
     );
@@ -212,5 +290,27 @@ const styles = StyleSheet.create({
     uploadArea: {
         width: "100%",
         minHeight: FlipStyles.adjustScale(320)
+    },
+    libraryCheckRow: {
+        minHeight: FlipStyles.adjustScale(64),
+        borderWidth: 1,
+        borderRadius: FlipStyles.adjustScale(14),
+        paddingHorizontal: FlipStyles.adjustScale(14),
+        paddingVertical: FlipStyles.adjustScale(12),
+        flexDirection: "row",
+        alignItems: "center",
+        gap: FlipStyles.adjustScale(12)
+    },
+    checkbox: {
+        width: FlipStyles.adjustScale(22),
+        height: FlipStyles.adjustScale(22),
+        borderRadius: FlipStyles.adjustScale(6),
+        borderWidth: 1,
+        alignItems: "center",
+        justifyContent: "center"
+    },
+    libraryCheckCopy: {
+        flex: 1,
+        gap: FlipStyles.adjustScale(2)
     }
 });

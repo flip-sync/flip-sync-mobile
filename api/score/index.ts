@@ -21,12 +21,12 @@ export interface IScoreApi {
 }
 
 export const scoreApi: IScoreApi = {
-    getScoreList: ({ pageParam, groupId }: tScoreSearch) => {
+    getScoreList: ({ pageParam, groupId, sortDirection = "desc" }: tScoreSearch) => {
         return baseUrl.get(`/group/${groupId}/score`, {
             params: {
                 page: pageParam,
                 size: 10,
-                sort: "createdAt,desc"
+                sort: `createdAt,${sortDirection}`
             }
         });
     },
@@ -40,12 +40,19 @@ export const scoreApi: IScoreApi = {
             }
         });
     },
-    getOrganizationScoreList: ({ pageParam, title, singer, code, uploadedUserName }: tOrganizationScoreSearch) => {
+    getOrganizationScoreList: ({
+        pageParam,
+        title,
+        singer,
+        code,
+        uploadedUserName,
+        sortDirection = "desc"
+    }: tOrganizationScoreSearch) => {
         return baseUrl.get(`/organization/score`, {
             params: {
                 page: pageParam,
                 size: 12,
-                sort: "createdAt,desc",
+                sort: `createdAt,${sortDirection}`,
                 title,
                 singer,
                 code,

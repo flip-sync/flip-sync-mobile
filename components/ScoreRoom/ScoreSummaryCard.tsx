@@ -1,5 +1,5 @@
 ﻿import { memo } from "react";
-import { Pressable, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Pressable, StyleSheet, TouchableOpacity, useWindowDimensions, View } from "react-native";
 import { Image } from "expo-image";
 import { useFlipTheme } from "@/common";
 import FlipStyles from "@/styles";
@@ -33,22 +33,28 @@ export const ScoreSummaryCard = memo(function ScoreSummaryCard({
     onPressSharedAction
 }: ScoreSummaryCardProps) {
     const theme = useFlipTheme();
+    const { width } = useWindowDimensions();
     const hasSharedAction = showSharedAction && !!onPressSharedAction;
     const avatarIndent = FlipStyles.adjustScale(52);
+    const sharedActionSpace = hasSharedAction ? FlipStyles.adjustScale(42) : 0;
+    const cardWidth = Math.min(
+        FlipStyles.adjustScale(320),
+        Math.max(FlipStyles.adjustScale(236), width - FlipStyles.adjustScale(120) - sharedActionSpace)
+    );
 
     return (
-        <View style={[styles.row, { alignItems: isMine ? "flex-start" : "flex-end" }]}>
+        <View style={[styles.row, { alignItems: isMine ? "flex-end" : "flex-start" }]}>
             <View style={styles.messageGroup}>
                 <View
                     style={[
                         styles.headerRow,
                         {
-                            flexDirection: isMine ? "row" : "row-reverse"
+                            flexDirection: isMine ? "row-reverse" : "row"
                         }
                     ]}
                 >
                     <ProfileAvatar uri={uploadedUserProfileImageUrl} size={FlipStyles.adjustScale(44)} />
-                    <DefaultText Body2 weight="500" color={theme.gray2} style={{ textAlign: isMine ? "left" : "right" }}>
+                    <DefaultText Body2 weight="500" color={theme.gray2} style={{ textAlign: isMine ? "right" : "left" }}>
                         {uploadedUserName}
                     </DefaultText>
                 </View>
@@ -57,9 +63,9 @@ export const ScoreSummaryCard = memo(function ScoreSummaryCard({
                     style={[
                         styles.messageBlock,
                         {
-                            alignItems: isMine ? "flex-start" : "flex-end",
-                            marginLeft: isMine ? avatarIndent : 0,
-                            marginRight: isMine ? 0 : avatarIndent
+                            alignItems: isMine ? "flex-end" : "flex-start",
+                            marginLeft: isMine ? 0 : avatarIndent,
+                            marginRight: isMine ? avatarIndent : 0
                         }
                     ]}
                 >
@@ -67,7 +73,7 @@ export const ScoreSummaryCard = memo(function ScoreSummaryCard({
                         style={[
                             styles.cardRow,
                             {
-                                flexDirection: isMine ? "row" : "row-reverse"
+                                flexDirection: isMine ? "row-reverse" : "row"
                             }
                         ]}
                     >
@@ -76,6 +82,7 @@ export const ScoreSummaryCard = memo(function ScoreSummaryCard({
                             style={[
                                 styles.cardBody,
                                 {
+                                    width: cardWidth,
                                     backgroundColor: theme.white,
                                     borderColor: theme.gray7
                                 }
@@ -85,21 +92,24 @@ export const ScoreSummaryCard = memo(function ScoreSummaryCard({
                                 style={[styles.thumbnail, { borderColor: theme.gray7 }]}
                                 img={thumbnail ? undefined : "imgs-score-active"}
                                 uri={thumbnail}
-                                aspectRatio={2 / 1}
+                                aspectRatio={16 / 9}
+                                contentPosition="top center"
                                 cachePolicy="memory-disk"
                                 transition={120}
                                 recyclingKey={thumbnail ?? `${title}-${uploadedUserName}`}
                             />
                             <View style={styles.textBlock}>
-                                <DefaultText Body2 color={theme.gray2} weight="700">
+                                <DefaultText Title4 color={theme.gray2} weight="800" numberOfLines={2}>
                                     {title}
                                 </DefaultText>
-                                <DefaultText Title4 color={theme.gray2} weight="700" numberOfLines={2}>
-                                    {singer}
-                                </DefaultText>
-                                <DefaultText Body2 color={theme.gray2} numberOfLines={2}>
-                                    {code}
-                                </DefaultText>
+                                <View style={styles.metaRow}>
+                                    <DefaultText Body2 color={theme.gray4} numberOfLines={1} style={styles.singerText}>
+                                        {singer}
+                                    </DefaultText>
+                                    <DefaultText Button2 color={theme.primary} weight="700" numberOfLines={1}>
+                                        {code}
+                                    </DefaultText>
+                                </View>
                             </View>
                         </Pressable>
 
@@ -142,15 +152,25 @@ const styles = StyleSheet.create({
         gap: FlipStyles.adjustScale(10)
     },
     cardBody: {
-        width: FlipStyles.adjustScale(250),
         maxWidth: "100%",
-        gap: FlipStyles.adjustScale(10),
+        gap: FlipStyles.adjustScale(12),
         borderRadius: FlipStyles.adjustScale(18),
         borderWidth: 1,
-        padding: FlipStyles.adjustScale(12)
+        padding: FlipStyles.adjustScale(10)
     },
     textBlock: {
-        gap: FlipStyles.adjustScale(4)
+        gap: FlipStyles.adjustScale(6),
+        paddingHorizontal: FlipStyles.adjustScale(2),
+        paddingBottom: FlipStyles.adjustScale(2)
+    },
+    metaRow: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: FlipStyles.adjustScale(12)
+    },
+    singerText: {
+        flexShrink: 1
     },
     thumbnail: {
         width: "100%",

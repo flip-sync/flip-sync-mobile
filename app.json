@@ -3,6 +3,9 @@
     "name": "Flipsync",
     "slug": "flipsync",
     "version": "1.0.0",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
     "orientation": "portrait",
     "icon": "./assets/images/imgs-icon.png",
     "scheme": "flipsync",
@@ -12,9 +15,16 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "updates": {
+      "url": "https://u.expo.dev/ee0a9280-f5d5-45dc-b5b9-9c30d4ed1f2f",
+      "checkAutomatically": "NEVER"
+    },
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.fliplyze.flipsync",
+      "associatedDomains": [
+        "applinks:fliplyze.com"
+      ],
       "buildNumber": "1",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
@@ -22,7 +32,23 @@
     },
     "android": {
       "package": "com.fliplyze.flipsync",
-      "versionCode": 1,
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "fliplyze.com",
+              "pathPrefix": "/mob/invite"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/imgs-adaptive-icon.png",
         "backgroundColor": "#ffffff"

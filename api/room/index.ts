@@ -27,6 +27,8 @@ export type tKickRoomMember = {
     targetUserId: number;
 };
 
+export type tRoomSortDirection = "asc" | "desc";
+
 export type tRoomList = tRoom[];
 
 export type tRoom = {
@@ -80,7 +82,7 @@ export type tRoomInviteInfo = {
 };
 
 export interface IRoomApi {
-    getRoomList: (pageParam: number) => Promise<IApiResponse<IPagination<tRoomList>>>;
+    getRoomList: (pageParam: number, sortDirection?: tRoomSortDirection) => Promise<IApiResponse<IPagination<tRoomList>>>;
     getMyRoomList: () => Promise<IApiResponse<IPagination<tRoomList>>>;
     getRoomInfo: (groupId?: number) => Promise<IApiResponse<tRoomDetail[]>>;
     getRoomSummary: (groupId?: number) => Promise<IApiResponse<tRoomSummary>>;
@@ -94,11 +96,12 @@ export interface IRoomApi {
 }
 
 export const roomApi: IRoomApi = {
-    getRoomList: pageParam => {
+    getRoomList: (pageParam, sortDirection = "desc") => {
         return baseUrl.get("/group", {
             params: {
                 page: pageParam,
-                size: 10
+                size: 10,
+                sort: `createdAt,${sortDirection}`
             }
         });
     },

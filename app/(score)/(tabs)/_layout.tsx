@@ -2,9 +2,13 @@
 import { useFlipTheme } from "@/common";
 import FlipIcon from "@/components/base/imgs/FlipIcon";
 import FlipStyles from "@/styles";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function HomeTabLayout() {
     const theme = useFlipTheme();
+    const insets = useSafeAreaInsets();
+    const tabBarBaseHeight = FlipStyles.adjustScale(64);
+    const tabBarBottomPadding = Math.max(insets.bottom, FlipStyles.adjustScale(6));
 
     return (
         <Tabs
@@ -12,7 +16,12 @@ export default function HomeTabLayout() {
                 tabBarActiveTintColor: theme.primary,
                 headerShown: false,
                 tabBarStyle: {
-                    height: FlipStyles.adjustScale(65)
+                    height: tabBarBaseHeight + tabBarBottomPadding,
+                    paddingTop: FlipStyles.adjustScale(6),
+                    paddingBottom: tabBarBottomPadding
+                },
+                tabBarLabelStyle: {
+                    paddingBottom: 0
                 }
             }}
         >

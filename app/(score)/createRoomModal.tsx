@@ -8,19 +8,22 @@ import FlipStyles from "@/styles";
 import { isAxiosError } from "axios";
 import { useNavigation, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Alert, Platform, StatusBar, StyleSheet, TouchableOpacity, View } from "react-native";
+import { Alert, StyleSheet, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const COPY = {
     create: "생성",
     creating: "생성 중...",
     roomNamePlaceholder: "방 제목을 입력해 주세요.",
-    memberLimitPlaceholder: "인원 수",
-    passwordPlaceholder: "비밀번호 숫자8자리",
+    roomNameLabel: "방 제목",
+    memberLimitLabel: "참여 인원",
+    memberLimitPlaceholder: "최대 10명",
+    passwordLabel: "비밀번호",
+    passwordPlaceholder: "4자리",
     roomNameRequired: "방 이름을 입력해 주세요.",
     memberLimitRequired: "인원 수를 입력해 주세요.",
     memberLimitInvalid: "인원 수는 1명 이상 10명 이하로 입력해 주세요.",
-    passwordInvalid: "비밀번호는 숫자 8자리로 입력해 주세요.",
+    passwordInvalid: "비밀번호는 숫자 4자리로 입력해 주세요.",
     unknownResult: "방 생성 결과를 확인하지 못했습니다.",
     createFailed: "방 생성에 실패했습니다."
 } as const;
@@ -39,7 +42,7 @@ export default function CreateRoomModal() {
         const normalizedName = roomName.trim();
         const parsedMemberLimit = Number(memberLimit);
         const isMemberLimitValid = Number.isInteger(parsedMemberLimit) && parsedMemberLimit >= 1 && parsedMemberLimit <= 10;
-        const isPasswordValid = !isPrivateRoom || /^\d{8}$/.test(roomPassword.trim());
+        const isPasswordValid = !isPrivateRoom || /^\d{4}$/.test(roomPassword.trim());
 
         return Boolean(normalizedName && isMemberLimitValid && isPasswordValid);
     }, [isPrivateRoom, memberLimit, roomName, roomPassword]);
@@ -74,7 +77,7 @@ export default function CreateRoomModal() {
             return;
         }
 
-        if (isPrivateRoom && !/^\d{8}$/.test(normalizedPassword)) {
+        if (isPrivateRoom && !/^\d{4}$/.test(normalizedPassword)) {
             Alert.alert(COPY.passwordInvalid);
             return;
         }
@@ -129,26 +132,30 @@ export default function CreateRoomModal() {
 
     return (
         <SafeAreaView
+            edges={["left", "right", "bottom"]}
             style={[
                 styles.container,
                 {
-                    backgroundColor: theme.white,
-                    paddingTop: Platform.OS === "android" ? StatusBar.currentHeight : 0
+                    backgroundColor: theme.white
                 }
             ]}
         >
             <View style={styles.formBox}>
                 <FormInput
+                    label={COPY.roomNameLabel}
                     placeholder={COPY.roomNamePlaceholder}
                     value={roomName}
                     maxLength={30}
                     hasClearButton
                     onClearPress={() => setRoomName("")}
                     onChangeText={setRoomName}
+                    multiline={false}
+                    numberOfLines={1}
                 />
 
                 <View style={styles.inlineRow}>
                     <FormInput
+                        label={COPY.memberLimitLabel}
                         containerStyle={styles.memberLimitField}
                         placeholder={COPY.memberLimitPlaceholder}
                         value={memberLimit}
@@ -157,6 +164,8 @@ export default function CreateRoomModal() {
                         hasClearButton
                         onClearPress={() => setMemberLimit("")}
                         onChangeText={value => setMemberLimit(value.replace(/[^0-9]/g, ""))}
+                        multiline={false}
+                        numberOfLines={1}
                     />
 
                     <TouchableOpacity
@@ -172,6 +181,7 @@ export default function CreateRoomModal() {
                     </TouchableOpacity>
 
                     <FormInput
+                        label={COPY.passwordLabel}
                         containerStyle={styles.passwordField}
                         textContainerStyle={[
                             styles.passwordInputBox,
@@ -180,12 +190,15 @@ export default function CreateRoomModal() {
                         placeholder={COPY.passwordPlaceholder}
                         value={roomPassword}
                         keyboardType="number-pad"
-                        maxLength={8}
+                        maxLength={4}
                         secureTextEntry
                         hasClearButton={isPrivateRoom}
                         disabled={!isPrivateRoom}
                         onClearPress={() => setRoomPassword("")}
                         onChangeText={value => setRoomPassword(value.replace(/[^0-9]/g, ""))}
+                        multiline={false}
+                        numberOfLines={1}
+                        style={styles.passwordInput}
                     />
                 </View>
             </View>
@@ -198,30 +211,38 @@ const styles = StyleSheet.create({
         flex: 1
     },
     formBox: {
-        paddingTop: FlipStyles.adjustScale(24),
-        paddingHorizontal: FlipStyles.adjustScale(36),
-        gap: FlipStyles.adjustScale(14)
+        paddingTop: FlipStyles.adjustScale(10),
+        paddingHorizontal: FlipStyles.adjustScale(24),
+        gap: FlipStyles.adjustScale(12)
     },
     inlineRow: {
         flexDirection: "row",
-        alignItems: "center",
+        alignItems: "flex-start",
         gap: FlipStyles.adjustScale(12)
     },
     memberLimitField: {
-        flex: 1.12
+        flex: 1.08,
+        minWidth: FlipStyles.adjustScale(104)
     },
     passwordField: {
-        flex: 1
+        flex: 1.25,
+        minWidth: FlipStyles.adjustScale(120)
     },
     passwordInputBox: {
-        minHeight: FlipStyles.adjustScale(48)
+        minHeight: FlipStyles.adjustScale(48),
+        paddingHorizontal: FlipStyles.adjustScale(14)
+    },
+    passwordInput: {
+        width: "100%",
+        fontSize: FlipStyles.adjustScale(15)
     },
     lockButton: {
         width: FlipStyles.adjustScale(44),
         height: FlipStyles.adjustScale(44),
         borderRadius: FlipStyles.adjustScale(8),
         alignItems: "center",
-        justifyContent: "center"
+        justifyContent: "center",
+        marginTop: FlipStyles.adjustScale(30)
     },
     headerAction: {
         paddingHorizontal: FlipStyles.adjustScale(16),

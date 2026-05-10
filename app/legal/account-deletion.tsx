@@ -1,6 +1,5 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { useQueryClient } from "@tanstack/react-query";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { Alert, Pressable, ScrollView, StyleSheet, View } from "react-native";
@@ -22,26 +21,26 @@ import FlipStyles from "@/styles";
 
 const SECTIONS = [
     {
-        title: "삭제 시 함께 정리되는 정보",
+        title: "삭제 시 정리되는 정보",
         items: [
             "내 계정 프로필과 로그인 정보",
             "내가 업로드한 개인 프로필 이미지",
-            "내가 업로드한 조직 악보와 공유방 악보"
+            "내가 업로드한 악보 이미지와 공유방 데이터"
         ]
     },
     {
         title: "조직과 방 처리 방식",
         items: [
-            "내가 조직장인 조직에 다른 멤버가 있으면 가장 먼저 가입한 멤버에게 조직장이 이관됩니다.",
-            "내가 방장인 방에 다른 멤버가 있으면 가장 먼저 가입한 멤버에게 방장이 이관됩니다.",
-            "나 혼자만 남아 있는 조직이나 방은 함께 삭제될 수 있습니다."
+            "내가 조직장인 조직에 다른 멤버가 있으면 가장 먼저 가입한 멤버에게 권한이 이동할 수 있습니다.",
+            "내가 방장인 공유방에 다른 멤버가 있으면 가장 먼저 가입한 멤버에게 방장 권한이 이동할 수 있습니다.",
+            "나만 남아 있는 조직이나 공유방은 함께 정리될 수 있습니다."
         ]
     },
     {
-        title: "주의 사항",
+        title: "삭제 전 확인할 점",
         items: [
             "계정 삭제 후에는 로그인과 데이터 복구가 어렵습니다.",
-            "문제가 있거나 즉시 삭제가 어려우면 아래 지원 메일로 문의할 수 있습니다."
+            "즉시 삭제가 어려운 상황이 있으면 아래 지원 메일로 문의할 수 있습니다."
         ]
     }
 ] as const;
@@ -90,7 +89,7 @@ export default function AccountDeletionScreen() {
 
         Alert.alert(
             "계정을 삭제할까요?",
-            "삭제 후에는 계정과 내가 올린 일부 데이터가 바로 정리되며 복구가 어렵습니다.",
+            "삭제 후에는 계정과 관련 데이터가 정리되며 복구가 어려울 수 있습니다.",
             [
                 {
                     text: "취소",
@@ -133,7 +132,8 @@ export default function AccountDeletionScreen() {
                         계정 삭제
                     </DefaultText>
                     <DefaultText Body1 color={theme.gray4} containerStyle={styles.heroText}>
-                        앱 안에서 바로 계정을 삭제할 수 있습니다. 아래 내용을 확인한 뒤 현재 비밀번호를 입력해 주세요.
+                        앱 안에서 바로 계정 삭제를 요청할 수 있습니다. 아래 안내를 확인한 뒤 현재 비밀번호를 입력해
+                        주세요.
                     </DefaultText>
 
                     {SECTIONS.map(section => (

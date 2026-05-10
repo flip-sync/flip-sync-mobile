@@ -15,6 +15,7 @@
     "preview": {
       "distribution": "internal",
       "environment": "preview",
+      "channel": "preview",
       "env": {
         "EXPO_PUBLIC_API_URL": "https://fliplyze.com/mob"
       }
@@ -22,8 +23,17 @@
     "production": {
       "autoIncrement": true,
       "environment": "production",
+      "channel": "production",
       "env": {
         "EXPO_PUBLIC_API_URL": "https://fliplyze.com/mob"
+      },
+      "cache": {
+        "key": "android-gradle-v1",
+        "paths": [
+          "android/.gradle",
+          "android/build",
+          "android/app/build"
+        ]
       }
     }
   },

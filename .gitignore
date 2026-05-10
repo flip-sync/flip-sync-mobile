@@ -7,6 +7,7 @@ bun.lock
 
 # Expo
 .expo/
+.expo-store-web/
 .eas/
 .vscode/
 dist/
@@ -19,8 +20,18 @@ expo-env.d.ts
 *.p8
 *.p12
 *.key
+*.keystore
+*.keystore.properties
 *.mobileprovision
 .secrets/
+credentials/
+
+# Store / release artifacts
+store-assets/
+*.aab
+*.apk
+*.apks
+*.ipa
 
 # Metro
 .metro-health-check*
@@ -36,6 +47,9 @@ yarn-error.*
 
 # local env files
 .env*.local
+.env.eas
+.env.production
+.env.staging
 
 # typescript
 *.tsbuildinfo

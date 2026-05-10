@@ -10,7 +10,7 @@ import { useRoom } from "@/hooks/room";
 import { getScoreListQueryKey, useScore, useScoreDetail } from "@/hooks/score";
 import { useSharedScoreSync } from "@/hooks/score/useSharedScoreSync";
 import FlipStyles from "@/styles";
-import { tScoreList, tScoreSummary } from "@/api/score/types";
+import { tScoreList, tScoreSummary, tSharedScoreViewMessage } from "@/api/score/types";
 import { IApiResponse, IPagination } from "@/api/types";
 import { useIsFocused } from "@react-navigation/native";
 import { InfiniteData, useQueryClient } from "@tanstack/react-query";
@@ -88,6 +88,8 @@ export default function Room() {
     const [showLatestButton, setShowLatestButton] = useState(false);
     const scoreListRef = useRef<FlatList<tScoreSummary>>(null);
     const isNearLatestRef = useRef(true);
+    const processedSharedMessageRef = useRef<tSharedScoreViewMessage | null>(null);
+    const isClosingSharedViewRef = useRef(false);
 
     const { scoreDetail, isLoadingScoreDetail } = useScoreDetail({
         groupId,
@@ -187,6 +189,11 @@ export default function Room() {
             return;
         }
 
+        if (processedSharedMessageRef.current === lastSharedScoreMessage) {
+            return;
+        }
+        processedSharedMessageRef.current = lastSharedScoreMessage;
+
         if (lastSharedScoreMessage.type === "SCORE_CREATED") {
             if (lastSharedScoreMessage.scoreSummary) {
                 prependScoreSummaryToCache(lastSharedScoreMessage.scoreSummary);
@@ -204,6 +211,7 @@ export default function Room() {
         }
 
         if (!lastSharedScoreMessage.active || !lastSharedScoreMessage.scoreId) {
+            isClosingSharedViewRef.current = true;
             setSharedScoreSession(null);
             setIsJoinedSharedView(false);
             setSharedModeActive(false);
@@ -219,6 +227,7 @@ export default function Room() {
             pageIndex: lastSharedScoreMessage.pageIndex ?? 0,
             hostName: lastSharedScoreMessage.triggeredByUserName
         };
+        isClosingSharedViewRef.current = false;
         setSharedScoreSession(nextSession);
 
         if (isCreator || isJoinedSharedView || sharedModeActive) {
@@ -288,6 +297,7 @@ export default function Room() {
     }, [scores.length, scrollToLatest]);
 
     const openLocalViewer = useCallback((scoreId: number) => {
+        isClosingSharedViewRef.current = false;
         setIsActionMenuVisible(false);
         setSharedModeActive(false);
         setSelectedScoreId(scoreId);
@@ -296,6 +306,7 @@ export default function Room() {
 
     const openSharedViewer = useCallback(
         (scoreId: number) => {
+            isClosingSharedViewRef.current = false;
             setIsActionMenuVisible(false);
             setSharedScoreSession({
                 scoreId,
@@ -323,6 +334,7 @@ export default function Room() {
             return;
         }
 
+        isClosingSharedViewRef.current = false;
         setIsJoinedSharedView(true);
         setSharedModeActive(true);
         setSelectedScoreId(sharedScoreSession.scoreId);
@@ -330,6 +342,7 @@ export default function Room() {
     }, [sharedScoreSession]);
 
     const leaveSharedView = useCallback(() => {
+        isClosingSharedViewRef.current = true;
         setIsJoinedSharedView(false);
         setSharedModeActive(false);
         setSelectedScoreId(null);
@@ -337,6 +350,10 @@ export default function Room() {
     }, []);
 
     const handleViewerPageChange = (nextPageIndex: number) => {
+        if (isClosingSharedViewRef.current) {
+            return;
+        }
+
         setViewerPageIndex(nextPageIndex);
 
         if (sharedModeActive && isCreator && selectedScoreId != null) {
@@ -350,6 +367,8 @@ export default function Room() {
     };
 
     const closeViewer = () => {
+        isClosingSharedViewRef.current = true;
+
         if (sharedModeActive && isCreator) {
             sendSharedViewMessage({
                 type: "SYNC_SCORE_VIEW",

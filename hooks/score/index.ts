@@ -1,10 +1,13 @@
 import { scoreApi } from "@/api/score";
-import { tCreateOrganizationScore, tCreateScore } from "@/api/score/types";
+import { tCreateOrganizationScore, tCreateScore, tSortDirection } from "@/api/score/types";
 import { useActiveOrganizationSession } from "@/common";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-export const getScoreListQueryKey = (organizationId?: number | null, groupId?: number | null) =>
-    ["score", organizationId ?? null, groupId ?? null] as const;
+export const getScoreListQueryKey = (
+    organizationId?: number | null,
+    groupId?: number | null,
+    sortDirection: tSortDirection = "desc"
+) => ["score", organizationId ?? null, groupId ?? null, sortDirection] as const;
 
 export const getOrganizationScoreListQueryKey = (
     organizationId?: number | null,
@@ -13,6 +16,7 @@ export const getOrganizationScoreListQueryKey = (
         singer?: string;
         code?: string;
         uploadedUserName?: string;
+        sortDirection?: tSortDirection;
     }
 ) =>
     [
@@ -21,13 +25,15 @@ export const getOrganizationScoreListQueryKey = (
         filters?.title?.trim() ?? "",
         filters?.singer?.trim() ?? "",
         filters?.code?.trim() ?? "",
-        filters?.uploadedUserName?.trim() ?? ""
+        filters?.uploadedUserName?.trim() ?? "",
+        filters?.sortDirection ?? "desc"
     ] as const;
 
-export const useScore = (props?: { groupId: number }) => {
+export const useScore = (props?: { groupId: number; sortDirection?: tSortDirection }) => {
     const queryClient = useQueryClient();
     const activeOrganization = useActiveOrganizationSession();
     const activeOrganizationId = activeOrganization?.id;
+    const sortDirection = props?.sortDirection ?? "desc";
     const {
         data: scoreList,
         fetchNextPage: nextScoreList,
@@ -36,8 +42,8 @@ export const useScore = (props?: { groupId: number }) => {
         isLoading: isLoadingScoreList,
         error
     } = useInfiniteQuery({
-        queryKey: getScoreListQueryKey(activeOrganizationId, props?.groupId),
-        queryFn: ({ pageParam }) => scoreApi.getScoreList({ pageParam, groupId: props?.groupId }),
+        queryKey: getScoreListQueryKey(activeOrganizationId, props?.groupId, sortDirection),
+        queryFn: ({ pageParam }) => scoreApi.getScoreList({ pageParam, groupId: props?.groupId, sortDirection }),
         initialPageParam: 0,
         enabled: Boolean(activeOrganizationId && props?.groupId),
         staleTime: 60_000,
@@ -49,15 +55,9 @@ export const useScore = (props?: { groupId: number }) => {
     const { mutateAsync: createScore } = useMutation({
         mutationFn: (props: tCreateScore) => scoreApi.postScore(props),
         onSuccess: async (_response, variables) => {
-            const cachedScorePages = queryClient.getQueryData(
-                getScoreListQueryKey(activeOrganizationId, variables.groupId)
-            );
-
-            if (!cachedScorePages) {
-                await queryClient.invalidateQueries({
-                    queryKey: getScoreListQueryKey(activeOrganizationId, variables.groupId)
-                });
-            }
+            await queryClient.invalidateQueries({
+                queryKey: ["score", activeOrganizationId ?? null, variables.groupId]
+            });
         }
     });
     return {
@@ -91,6 +91,7 @@ export const useOrganizationScoreLibrary = (props?: {
     singer?: string;
     code?: string;
     uploadedUserName?: string;
+    sortDirection?: tSortDirection;
     enabled?: boolean;
 }) => {
     const queryClient = useQueryClient();
@@ -100,7 +101,8 @@ export const useOrganizationScoreLibrary = (props?: {
         title: props?.title?.trim() || undefined,
         singer: props?.singer?.trim() || undefined,
         code: props?.code?.trim() || undefined,
-        uploadedUserName: props?.uploadedUserName?.trim() || undefined
+        uploadedUserName: props?.uploadedUserName?.trim() || undefined,
+        sortDirection: props?.sortDirection ?? "desc"
     };
 
     const {
@@ -147,7 +149,12 @@ export const useOrganizationScoreLibrary = (props?: {
 
     const { mutateAsync: sendOrganizationScoreToGroup, isPending: isSendingOrganizationScoreToGroup } = useMutation({
         mutationFn: ({ scoreId, groupId }: { scoreId: number; groupId: number }) =>
-            scoreApi.sendOrganizationScoreToGroup(scoreId, groupId)
+            scoreApi.sendOrganizationScoreToGroup(scoreId, groupId),
+        onSuccess: async (_response, variables) => {
+            await queryClient.invalidateQueries({
+                queryKey: ["score", activeOrganizationId ?? null, variables.groupId]
+            });
+        }
     });
 
     return {

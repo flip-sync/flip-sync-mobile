@@ -29,7 +29,7 @@ const ImageUpload = ({ images, autoOpen = false, handleSelectImage, handleDelete
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ["images"],
             allowsMultipleSelection: true,
-            quality: 1
+            quality: 0.82
         });
 
         if (result.canceled) {
@@ -38,7 +38,10 @@ const ImageUpload = ({ images, autoOpen = false, handleSelectImage, handleDelete
 
         const selectedImages = result.assets.map((asset, index) => ({
             uri: asset.uri,
-            order: images.length + index + 1
+            order: images.length + index + 1,
+            fileName: asset.fileName,
+            mimeType: asset.mimeType,
+            fileSize: asset.fileSize
         }));
 
         handleSelectImage(selectedImages);

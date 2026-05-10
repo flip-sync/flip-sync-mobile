@@ -1,5 +1,6 @@
 ﻿import { tScoreSummary } from "@/api/score/types";
 import { useActiveOrganizationSession, useFlipTheme } from "@/common";
+import { tSortDirection } from "@/api/score/types";
 import { SCORE_CODE_OPTIONS } from "@/common/scoreCodes";
 import { FloatingButton } from "@/components/base/Button/FloatingButton";
 import { Header } from "@/components/base/Header";
@@ -13,7 +14,7 @@ import { useCheckDevice } from "@/hooks/useCheckDevice";
 import { useUserProfile } from "@/hooks/user";
 import FlipStyles from "@/styles";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Alert, FlatList, Pressable, StyleSheet, TextInput, View, useWindowDimensions } from "react-native";
 
 const COPY = {
@@ -25,6 +26,7 @@ const COPY = {
     singerPlaceholder: "가수",
     search: "검색",
     latest: "최신순",
+    oldest: "오래된순",
     empty: "아직 등록된 악보가 없습니다.",
     emptySearch: "검색 결과가 없습니다.",
     sendingTitle: "악보 보내기",
@@ -55,6 +57,18 @@ const DEFAULT_FILTERS: SearchFilters = {
     code: ""
 };
 
+const compareScoreByCreatedAt = (sortDirection: tSortDirection) => (left: tScoreSummary, right: tScoreSummary) => {
+    const createdAtOrder =
+        sortDirection === "desc"
+            ? right.createdAt.localeCompare(left.createdAt)
+            : left.createdAt.localeCompare(right.createdAt);
+    if (createdAtOrder !== 0) {
+        return createdAtOrder;
+    }
+
+    return sortDirection === "desc" ? right.id - left.id : left.id - right.id;
+};
+
 export default function OrganizationScoreLibraryScreen() {
     const theme = useFlipTheme();
     const router = useRouter();
@@ -72,6 +86,8 @@ export default function OrganizationScoreLibraryScreen() {
     const [appliedFilters, setAppliedFilters] = useState<SearchFilters>(DEFAULT_FILTERS);
     const [selectedScoreId, setSelectedScoreId] = useState<number | null>(null);
     const [viewerPageIndex, setViewerPageIndex] = useState(0);
+    const [sortDirection, setSortDirection] = useState<tSortDirection>("desc");
+    const listRef = useRef<FlatList<tScoreSummary>>(null);
 
     const {
         organizationScoreList,
@@ -85,7 +101,10 @@ export default function OrganizationScoreLibraryScreen() {
         isDeletingOrganizationScore,
         sendOrganizationScoreToGroup,
         isSendingOrganizationScoreToGroup
-    } = useOrganizationScoreLibrary(appliedFilters);
+    } = useOrganizationScoreLibrary({
+        ...appliedFilters,
+        sortDirection
+    });
 
     const { organizationScoreDetail, isLoadingOrganizationScoreDetail } = useOrganizationScoreDetail({
         scoreId: selectedScoreId ?? undefined,
@@ -93,9 +112,13 @@ export default function OrganizationScoreLibraryScreen() {
     });
 
     const scores = useMemo(
-        () => organizationScoreList?.pages.flatMap(page => page.data.content) ?? [],
-        [organizationScoreList?.pages]
+        () =>
+            [...(organizationScoreList?.pages.flatMap(page => page.data.content) ?? [])].sort(
+                compareScoreByCreatedAt(sortDirection)
+            ),
+        [organizationScoreList?.pages, sortDirection]
     );
+    const sortLabel = sortDirection === "desc" ? COPY.latest : COPY.oldest;
     const columnCount = isTablet ? 3 : 2;
     const gridGap = FlipStyles.adjustScale(12);
     const cardWidth = useMemo(() => {
@@ -111,6 +134,16 @@ export default function OrganizationScoreLibraryScreen() {
             code: draftFilters.code.trim()
         });
     };
+
+    const handlePressLatestSort = useCallback(() => {
+        setSortDirection(current => (current === "desc" ? "asc" : "desc"));
+        requestAnimationFrame(() => {
+            listRef.current?.scrollToOffset({
+                offset: 0,
+                animated: true
+            });
+        });
+    }, []);
 
     const openUploadModal = () => {
         router.push({
@@ -238,12 +271,15 @@ export default function OrganizationScoreLibraryScreen() {
                         </View>
                     </View>
 
-                    <View style={styles.sortRow}>
-                        <FlipIcon icon="icon-arrow-up-down" size={16} color={theme.gray4} />
-                        <DefaultText Button3 color={theme.gray4}>
-                            {COPY.latest}
+                    <Pressable
+                        onPress={handlePressLatestSort}
+                        style={[styles.sortRow, styles.sortButton, { borderColor: theme.primaryLight }]}
+                    >
+                        <FlipIcon icon="icon-arrow-up-down" size={16} color={theme.primary} />
+                        <DefaultText Button3 weight="700" color={theme.primary}>
+                            {sortLabel}
                         </DefaultText>
-                    </View>
+                    </Pressable>
                 </View>
             </View>
         </View>
@@ -260,6 +296,7 @@ export default function OrganizationScoreLibraryScreen() {
                 </View>
             ) : (
                 <FlatList
+                    ref={listRef}
                     data={scores}
                     key={columnCount === 3 ? "organization-score-grid-3" : "organization-score-grid-2"}
                     numColumns={columnCount}
@@ -267,7 +304,7 @@ export default function OrganizationScoreLibraryScreen() {
                     ListHeaderComponentStyle={styles.listHeader}
                     columnWrapperStyle={styles.gridRow}
                     contentContainerStyle={styles.listContent}
-                    ListHeaderComponent={renderHeader}
+                    ListHeaderComponent={renderHeader()}
                     renderItem={({ item }) => (
                         <View style={[styles.cardColumn, { width: cardWidth }]}>
                             <OrganizationScoreCard
@@ -437,6 +474,13 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         gap: FlipStyles.adjustScale(4)
+    },
+    sortButton: {
+        minHeight: FlipStyles.adjustScale(34),
+        borderWidth: 1,
+        borderRadius: FlipStyles.adjustScale(999),
+        paddingHorizontal: FlipStyles.adjustScale(10),
+        justifyContent: "center"
     },
     listContent: {
         paddingBottom: FlipStyles.adjustScale(96),

@@ -1,3 +1,5 @@
+export type tSortDirection = "asc" | "desc";
+
 export type tCreateScore = {
     groupId: number;
     formData: FormData;
@@ -39,6 +41,7 @@ export type tScoreDetail = {
 export type tScoreSearch = {
     groupId?: number;
     pageParam: number;
+    sortDirection?: tSortDirection;
 };
 
 export type tOrganizationScoreSearch = {
@@ -47,6 +50,7 @@ export type tOrganizationScoreSearch = {
     singer?: string;
     code?: string;
     uploadedUserName?: string;
+    sortDirection?: tSortDirection;
 };
 
 export type tSharedScoreViewMessage = {

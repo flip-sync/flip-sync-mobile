@@ -3,7 +3,8 @@ import { useFlipTheme } from "@/common";
 import DefaultImage from "@/components/base/imgs/FlipImage";
 import DefaultText from "@/components/base/Text";
 import FlipStyles from "@/styles";
-import { useEffect, useMemo, useRef } from "react";
+import { StatusBar } from "expo-status-bar";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { FlatList, Modal, Pressable, StyleSheet, useWindowDimensions, View, ViewToken } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -30,6 +31,7 @@ export const ScoreViewerModal = ({
     const { width, height } = useWindowDimensions();
     const flatListRef = useRef<FlatList<tScoreDetail["scoreImageList"][number]>>(null);
     const onPageChangeRef = useRef(onPageChange);
+    const [isFullScreen, setIsFullScreen] = useState(false);
 
     const images = useMemo(
         () => [...(scoreDetail?.scoreImageList ?? [])].sort((left, right) => left.order - right.order),
@@ -51,6 +53,12 @@ export const ScoreViewerModal = ({
         onPageChangeRef.current = onPageChange;
     }, [onPageChange]);
 
+    useEffect(() => {
+        if (!visible) {
+            setIsFullScreen(false);
+        }
+    }, [visible]);
+
     const viewabilityConfigRef = useRef({
         itemVisiblePercentThreshold: 70
     });
@@ -67,29 +75,64 @@ export const ScoreViewerModal = ({
     const statusText = sharedModeActive
         ? isCreator
             ? "같이보기 진행 중"
-            : "방장이 같이보기를 진행 중"
+            : "같이보기 참여 중"
         : "개별 보기";
+    const closeButtonText = sharedModeActive && !isCreator ? "나가기" : "닫기";
+    const viewerHeight = isFullScreen ? height : height - FlipStyles.adjustScale(96);
+    const imageWidth = isFullScreen ? width : width - FlipStyles.adjustScale(24);
 
     return (
-        <Modal visible={visible} animationType="slide" presentationStyle="fullScreen" transparent={false}>
-            <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.black }]}>
-                <View style={styles.header}>
-                    <View style={styles.headerTextBlock}>
-                        <DefaultText Title4 weight="700" color={theme.white}>
-                            {scoreDetail?.title ?? "악보"}
-                        </DefaultText>
-                        <DefaultText Body2 color={theme.gray6}>
-                            {images.length > 0 ? `${pageIndex + 1}/${images.length}` : "0/0"} · {statusText}
-                        </DefaultText>
+        <Modal
+            visible={visible}
+            animationType="slide"
+            presentationStyle="fullScreen"
+            transparent={false}
+            onRequestClose={onClose}
+        >
+            <SafeAreaView
+                edges={isFullScreen ? [] : ["top", "left", "right", "bottom"]}
+                style={[styles.safeArea, { backgroundColor: theme.black }]}
+            >
+                <StatusBar hidden={isFullScreen} />
+                {!isFullScreen && (
+                    <View style={styles.header}>
+                        <View style={styles.headerTextBlock}>
+                            <DefaultText Title4 weight="700" color={theme.white}>
+                                {scoreDetail?.title ?? "악보"}
+                            </DefaultText>
+                            <DefaultText Body2 color={theme.gray6}>
+                                {images.length > 0 ? `${pageIndex + 1}/${images.length}` : "0/0"} · {statusText}
+                            </DefaultText>
+                        </View>
+                        <View style={styles.headerActions}>
+                            <Pressable onPress={() => setIsFullScreen(true)} style={styles.headerButton}>
+                                <DefaultText Button2 weight="700" color={theme.white}>
+                                    전체화면
+                                </DefaultText>
+                            </Pressable>
+                            <Pressable onPress={onClose} style={styles.headerButton}>
+                                <DefaultText Button2 weight="700" color={theme.white}>
+                                    {closeButtonText}
+                                </DefaultText>
+                            </Pressable>
+                        </View>
                     </View>
-                    {(isCreator || !sharedModeActive) && (
-                        <Pressable onPress={onClose} style={styles.closeButton}>
-                            <DefaultText Button2 weight="700" color={theme.white}>
-                                닫기
+                )}
+
+                {isFullScreen && (
+                    <View style={styles.fullScreenControls}>
+                        <Pressable onPress={() => setIsFullScreen(false)} style={styles.floatingButton}>
+                            <DefaultText Button3 weight="800" color={theme.white}>
+                                원래대로
                             </DefaultText>
                         </Pressable>
-                    )}
-                </View>
+                        <Pressable onPress={onClose} style={styles.floatingButton}>
+                            <DefaultText Button3 weight="800" color={theme.white}>
+                                {closeButtonText}
+                            </DefaultText>
+                        </Pressable>
+                    </View>
+                )}
 
                 <FlatList
                     ref={flatListRef}
@@ -107,13 +150,19 @@ export const ScoreViewerModal = ({
                         index
                     })}
                     renderItem={({ item }) => (
-                        <View style={[styles.slide, { width, minHeight: height * 0.7 }]}>
+                        <View
+                            style={[
+                                styles.slide,
+                                isFullScreen && styles.fullScreenSlide,
+                                { width, minHeight: viewerHeight }
+                            ]}
+                        >
                             <DefaultImage
                                 uri={item.url}
-                                fullWidth
-                                aspectRatio={3 / 4}
+                                width={imageWidth}
+                                height={viewerHeight}
                                 contentFit="contain"
-                                style={styles.image}
+                                style={[styles.image, isFullScreen && styles.fullScreenImage]}
                             />
                         </View>
                     )}
@@ -139,7 +188,12 @@ const styles = StyleSheet.create({
         gap: FlipStyles.adjustScale(4),
         flexShrink: 1
     },
-    closeButton: {
+    headerActions: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: FlipStyles.adjustScale(4)
+    },
+    headerButton: {
         paddingHorizontal: FlipStyles.adjustScale(12),
         paddingVertical: FlipStyles.adjustScale(8)
     },
@@ -148,7 +202,29 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center"
     },
+    fullScreenSlide: {
+        paddingHorizontal: 0
+    },
     image: {
         borderRadius: FlipStyles.adjustScale(12)
+    },
+    fullScreenImage: {
+        borderRadius: 0
+    },
+    fullScreenControls: {
+        position: "absolute",
+        top: FlipStyles.adjustScale(14),
+        right: FlipStyles.adjustScale(14),
+        zIndex: 20,
+        flexDirection: "row",
+        gap: FlipStyles.adjustScale(8)
+    },
+    floatingButton: {
+        minHeight: FlipStyles.adjustScale(36),
+        borderRadius: FlipStyles.adjustScale(18),
+        paddingHorizontal: FlipStyles.adjustScale(12),
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: "#00000099"
     }
 });

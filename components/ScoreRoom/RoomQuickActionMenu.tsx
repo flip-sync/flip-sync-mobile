@@ -3,12 +3,11 @@ import FlipIcon from "@/components/base/imgs/FlipIcon";
 import DefaultText from "@/components/base/Text";
 import FlipStyles from "@/styles";
 import { Pressable, StyleSheet, TouchableOpacity, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 type RoomQuickActionMenuProps = {
     visible: boolean;
     onToggle: () => void;
-    onOpenArchive: () => void;
-    onOpenImageUpload: () => void;
     onOpenScoreRegister: () => void;
     onOpenScoreSend: () => void;
 };
@@ -16,7 +15,7 @@ type RoomQuickActionMenuProps = {
 type QuickActionItem = {
     key: string;
     label: string;
-    icon: "icon-score" | "icon-profile" | "icon-score-add" | "icon-plus";
+    icon: "icon-score" | "icon-score-add";
     onPress: () => void;
     primary?: boolean;
 };
@@ -24,26 +23,14 @@ type QuickActionItem = {
 export const RoomQuickActionMenu = ({
     visible,
     onToggle,
-    onOpenArchive,
-    onOpenImageUpload,
     onOpenScoreRegister,
     onOpenScoreSend
 }: RoomQuickActionMenuProps) => {
     const theme = useFlipTheme();
+    const insets = useSafeAreaInsets();
+    const bottomOffset = FlipStyles.adjustScale(20) + insets.bottom;
 
     const actions: QuickActionItem[] = [
-        {
-            key: "archive",
-            label: "악보 창고",
-            icon: "icon-score",
-            onPress: onOpenArchive
-        },
-        {
-            key: "library",
-            label: "내 이미지",
-            icon: "icon-profile",
-            onPress: onOpenImageUpload
-        },
         {
             key: "register",
             label: "악보 등록",
@@ -53,7 +40,7 @@ export const RoomQuickActionMenu = ({
         {
             key: "send",
             label: "악보 보내기",
-            icon: "icon-plus",
+            icon: "icon-score",
             onPress: onOpenScoreSend,
             primary: true
         }
@@ -63,7 +50,7 @@ export const RoomQuickActionMenu = ({
         <>
             {visible && <Pressable style={styles.overlay} onPress={onToggle} />}
 
-            <View style={styles.root} pointerEvents="box-none">
+            <View style={[styles.root, { bottom: bottomOffset }]} pointerEvents="box-none">
                 {visible && (
                     <View style={styles.actionList} pointerEvents="box-none">
                         {actions.map(action => (
@@ -122,7 +109,6 @@ const styles = StyleSheet.create({
     root: {
         position: "absolute",
         right: FlipStyles.adjustScale(20),
-        bottom: FlipStyles.adjustScale(20),
         alignItems: "flex-end",
         zIndex: 40
     },

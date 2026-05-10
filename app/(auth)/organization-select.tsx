@@ -122,6 +122,11 @@ export default function OrganizationSelectScreen() {
   const isSubmitting = isCreatingOrganization || isJoiningOrganization;
 
   const handleClose = () => {
+    if (router.canGoBack()) {
+      router.back();
+      return;
+    }
+
     router.replace("/(score)/organization-info");
   };
 
@@ -234,7 +239,7 @@ export default function OrganizationSelectScreen() {
         <ScrollView
           contentContainerStyle={[styles.scrollContent, isAddMode ? styles.compactScrollContent : null]}
           keyboardShouldPersistTaps="handled"
-          scrollEnabled={!isAddMode}
+          scrollEnabled
           showsVerticalScrollIndicator={false}
         >
           <View style={[styles.card, isAddMode ? styles.compactCard : null, { backgroundColor: theme.white }]}>
@@ -430,7 +435,8 @@ const styles = StyleSheet.create({
     paddingVertical: FlipStyles.adjustScale(24)
   },
   compactScrollContent: {
-    paddingVertical: FlipStyles.adjustScale(16)
+    justifyContent: "center",
+    paddingVertical: FlipStyles.adjustScale(18)
   },
   card: {
     borderRadius: FlipStyles.adjustScale(28),

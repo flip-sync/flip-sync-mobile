@@ -204,11 +204,14 @@ const FormInput = forwardRef<FormTextInputRef, FormTextInputProps>(
                                     width: "80%",
                                     color: theme.gray2,
                                     textDecorationLine: "none",
-                                    height: FlipStyles.adjustScale(22),
+                                    height: FlipStyles.adjustScale(28),
                                     fontSize: FlipStyles.adjustScale(17),
                                     lineHeight: FlipStyles.adjustScale(22),
                                     padding: 0,
-                                    margin: 0
+                                    paddingVertical: 0,
+                                    margin: 0,
+                                    textAlignVertical: "center",
+                                    includeFontPadding: false
                                 },
                                 style
                             ]}
@@ -289,6 +292,8 @@ const styles = StyleSheet.create({
     textContainer: {
         position: "relative",
         backgroundColor: "#000000",
+        minHeight: FlipStyles.adjustScale(52),
+        justifyContent: "center",
         paddingVertical: FlipStyles.adjustScale(13),
         paddingHorizontal: FlipStyles.adjustScale(24),
         borderRadius: FlipStyles.adjustScale(8)

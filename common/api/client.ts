@@ -1,15 +1,20 @@
 import type { CommonResDto } from "./types";
 import { getAuthSession } from "./session";
 import { getActiveOrganizationSession } from "./organization-session";
+import Constants from "expo-constants";
+
+const DEFAULT_API_BASE_URL = "https://fliplyze.com/mob";
 
 export const getApiBaseUrl = () => {
+  const extraApiUrl =
+    typeof Constants.expoConfig?.extra?.apiUrl === "string"
+      ? Constants.expoConfig.extra.apiUrl
+      : undefined;
   const baseUrl =
     process.env.EXPO_PUBLIC_API_BASE_URL?.trim() ||
-    process.env.EXPO_PUBLIC_API_URL?.trim();
-
-  if (!baseUrl) {
-    throw new Error("EXPO_PUBLIC_API_BASE_URL or EXPO_PUBLIC_API_URL is not configured");
-  }
+    process.env.EXPO_PUBLIC_API_URL?.trim() ||
+    extraApiUrl?.trim() ||
+    DEFAULT_API_BASE_URL;
 
   return baseUrl.replace(/\/$/, "");
 };

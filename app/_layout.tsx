@@ -2,6 +2,7 @@ import "react-native-reanimated";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { StatusBar } from "expo-status-bar";
 import { useFonts } from "expo-font";
 import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -11,6 +12,8 @@ import { Dimensions } from "react-native";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import styles from "@/styles";
 import { ThemeProvider } from "@/styles/theme";
+import AppUpdateGate from "@/components/AppUpdateGate";
+import { CompactHeader } from "@/components/base/CompactHeader";
 import {
   ACTIVE_ORGANIZATION_STORAGE_KEY,
   ActiveOrganizationSession,
@@ -151,13 +154,18 @@ function RootLayoutNav({
 
   useEffect(() => {
     const topSegment = segments[0];
+    const topSegmentKey = String(topSegment ?? "");
     const secondSegment = segments[1] ?? "index";
-    const isLegalRoute = topSegment === "legal";
+    const secondSegmentKey = String(secondSegment);
+    const isLegalRoute = topSegmentKey === "legal";
+    const isSupportRoute = topSegmentKey === "support";
+    const isAppInfoRoute = topSegmentKey === "app-info";
+    const isInviteRoute = topSegmentKey === "invite" || (topSegmentKey === "mob" && secondSegmentKey === "invite");
     const isOrganizationSelectionRoute =
-      topSegment === "(auth)" && secondSegment === "organization-select";
-    const isPublicAuthRoute = topSegment === "(auth)" && secondSegment !== "organization-select";
+      topSegmentKey === "(auth)" && secondSegment === "organization-select";
+    const isPublicAuthRoute = topSegmentKey === "(auth)" && secondSegment !== "organization-select";
 
-    if (topSegment === "invite" || isLegalRoute) {
+    if (isInviteRoute || isLegalRoute || isSupportRoute || isAppInfoRoute) {
       return;
     }
 
@@ -169,7 +177,7 @@ function RootLayoutNav({
         return;
       }
 
-      if (topSegment !== "(score)" && !isOrganizationSelectionRoute) {
+      if (topSegmentKey !== "(score)" && !isOrganizationSelectionRoute) {
         router.replace("/(score)/(tabs)");
       }
       return;
@@ -182,10 +190,27 @@ function RootLayoutNav({
 
   return (
     <SafeAreaProvider>
-      <SafeAreaView style={{ flex: 1 }}>
+      <SafeAreaView edges={["top"]} style={{ flex: 1 }}>
+        <StatusBar style="dark" translucent={false} backgroundColor="#FFFFFF" />
         <QueryClientProvider client={queryClient}>
           <ThemeProvider>
-            <Stack screenOptions={{ headerShown: false }} />
+            <Stack screenOptions={{ headerShown: false }}>
+              <Stack.Screen
+                name="app-info"
+                options={{
+                  headerShown: true,
+                  header: () => <CompactHeader title="앱 정보" />
+                }}
+              />
+              <Stack.Screen
+                name="support"
+                options={{
+                  headerShown: true,
+                  header: () => <CompactHeader title="고객 지원" />
+                }}
+              />
+            </Stack>
+            <AppUpdateGate />
           </ThemeProvider>
         </QueryClientProvider>
       </SafeAreaView>

@@ -37,7 +37,8 @@ const COPY = {
     loggingOut: "\ub85c\uadf8\uc544\uc6c3 \uc911...",
     currentOrganization: "\ud604\uc7ac \uc18c\uc18d",
     organizationFallback: "\uc120\ud0dd\ub41c \uc18c\uc18d \uc5c6\uc74c",
-    organizationInfo: "\uc18c\uc18d \uc815\ubcf4"
+    organizationInfo: "\uc18c\uc18d \uc815\ubcf4",
+    appInfoTitle: "\uc571 \uc815\ubcf4"
 } as const;
 
 export default function MyInfoScreen() {
@@ -116,10 +117,22 @@ export default function MyInfoScreen() {
         router.push("/(score)/organization-info");
     };
 
+    const handlePressAppInfo = () => {
+        router.push("/app-info");
+    };
+
     return (
         <View style={[styles.container, { backgroundColor: theme.white }]}>
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
                 <View style={styles.profileSection}>
+                    <Pressable
+                        onPress={handlePressAppInfo}
+                        style={[styles.appInfoButton, { borderColor: theme.primaryLight, backgroundColor: theme.white }]}
+                    >
+                        <DefaultText Button3 weight="700" color={theme.primary}>
+                            {COPY.appInfoTitle}
+                        </DefaultText>
+                    </Pressable>
                     <ProfileAvatar uri={profileImageUrl} size={FlipStyles.adjustScale(88)} />
                     <DefaultText Title4 weight="700" color={theme.gray2} containerStyle={styles.profileName}>
                         {profileName}
@@ -255,9 +268,22 @@ const styles = StyleSheet.create({
         paddingBottom: FlipStyles.adjustScale(112)
     },
     profileSection: {
+        position: "relative",
         alignItems: "center",
         paddingTop: FlipStyles.adjustScale(28),
         paddingBottom: FlipStyles.adjustScale(22)
+    },
+    appInfoButton: {
+        position: "absolute",
+        top: FlipStyles.adjustScale(12),
+        right: FlipStyles.adjustScale(16),
+        minHeight: FlipStyles.adjustScale(32),
+        borderWidth: 1,
+        borderRadius: FlipStyles.adjustScale(999),
+        alignItems: "center",
+        justifyContent: "center",
+        paddingHorizontal: FlipStyles.adjustScale(12),
+        zIndex: 2
     },
     avatarCircle: {
         width: FlipStyles.adjustScale(88),

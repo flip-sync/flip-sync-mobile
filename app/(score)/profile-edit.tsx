@@ -44,7 +44,6 @@ const COPY = {
     readyMessage: "\ube44\ubc00\ubc88\ud638 \ubcc0\uacbd \uae30\ub2a5\uc740 \ub2e4\uc74c \ub2e8\uacc4\uc5d0\uc11c \uc5f0\uacb0\ud560 \uc608\uc815\uc785\ub2c8\ub2e4.",
     nameRequired: "\ub2c9\ub124\uc784\uc744 \uc785\ub825\ud574 \uc8fc\uc138\uc694.",
     namePlaceholder: "\ub2c9\ub124\uc784\uc744 \uc785\ub825\ud574 \uc8fc\uc138\uc694.",
-    organizationPlaceholder: "\uc18c\uc18d\uc744 \uc785\ub825\ud574 \uc8fc\uc138\uc694.",
     privacyPolicy: "\uac1c\uc778\uc815\ubcf4\ucc98\ub9ac\ubc29\uce68"
 } as const;
 
@@ -62,7 +61,6 @@ export default function ProfileEditScreen() {
     } = useUserProfile();
 
     const [name, setName] = useState("");
-    const [organization, setOrganization] = useState("");
 
     const profileData = profile?.data;
     const maskedPassword = useMemo(() => "\u2022".repeat(8), []);
@@ -73,7 +71,6 @@ export default function ProfileEditScreen() {
         }
 
         setName(profileData.name ?? "");
-        setOrganization(profileData.organization ?? "");
     }, [profileData]);
 
     const canSave = name.trim().length > 0 && !isUpdatingProfile && !isUpdatingProfileImage;
@@ -86,7 +83,7 @@ export default function ProfileEditScreen() {
 
         try {
             await updateProfile({
-                name: name.trim(),
+                name: name.trim()
             });
             Alert.alert(COPY.saveSuccess);
             router.back();
@@ -104,7 +101,7 @@ export default function ProfileEditScreen() {
 
         const result = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ["images"],
-            quality: 0.9,
+            quality: 0.8,
             allowsEditing: true,
             aspect: [1, 1]
         });
@@ -205,7 +202,6 @@ export default function ProfileEditScreen() {
                                 onChangeText={setName}
                                 containerStyle={styles.fieldGap}
                             />
-                        
                             <FormTextInput
                                 value={profileData?.email ?? ""}
                                 label={COPY.email}

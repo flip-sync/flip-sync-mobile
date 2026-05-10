@@ -1,193 +1,96 @@
-# FlipSync 모바일 스토어 배포 작업 순서
+# FlipSync Google Play 출시 체크리스트
 
-이 문서는 `FlipSync` 모바일 앱을 Google Play와 Apple App Store에 배포하기 전에 해야 할 일을 실제 진행 순서대로 정리한 체크리스트입니다.
+이 문서는 `FlipSync` Android 앱을 Google Play에 올리기 전에 확인해야 할 항목을 순서대로 정리한 체크리스트입니다.
 
-## 0. 배포 기준 확정
+## 1. 빌드 기본값 확인
 
-- [ ] 이번 배포 대상 버전을 확정한다.
-- [ ] Android와 iOS를 동시에 배포할지, Android 먼저 배포할지 결정한다.
-- [ ] iPad 지원 여부를 확정한다.
-  - 현재 설정은 `supportsTablet: true` 이므로 iPad 제출 기준이 적용된다.
-  - iPad를 지원하지 않을 계획이면 설정 변경이 필요하다.
+- [ ] 패키지명이 `com.fliplyze.flipsync`인지 확인한다.
+- [ ] 앱 버전(`version`)과 Android `versionCode`를 확인한다.
+- [ ] 프로덕션 API 주소가 `https://fliplyze.com/mob`로 설정되어 있는지 확인한다.
+- [ ] 권한 문구가 정상 한국어로 보이는지 확인한다.
 
-## 1. 앱 설정과 권한 정리
+## 2. AAB 빌드 준비
 
-- [ ] `expo-image-picker` 권한 설정을 정리한다.
-  - 현재 앱은 사진 라이브러리 업로드만 사용한다.
-  - Android `RECORD_AUDIO` 권한이 자동 포함되는 상태라면 제거 검토가 필요하다.
-  - 카메라를 실제로 쓰지 않으면 카메라 권한도 제외할지 확인한다.
-- [ ] 사진 접근 권한 문구를 최종 검수한다.
-- [ ] 앱 이름, 아이콘, 스플래시, 번들 ID, 패키지명이 최종 값인지 확인한다.
-- [ ] `version`, `buildNumber`, `versionCode` 운영 기준을 정한다.
-  - 첫 출시 이후에는 매 배포마다 증가 규칙이 필요하다.
+- [ ] `npm install` 또는 팀 표준 패키지 설치 명령으로 의존성을 정리한다.
+- [ ] `npx expo config --json`으로 최종 Expo 설정을 확인한다.
+- [ ] `npx eas-cli whoami`로 Expo 계정 로그인 상태를 확인한다.
+- [ ] `npm run eas:build:android`로 프로덕션 AAB 빌드를 생성한다.
 
-## 2. Expo / EAS 빌드 상태 정리
+## 3. Play Console 앱 생성
 
-- [ ] `expo-doctor` 경고를 정리한다.
-  - `app.json` / `app.config.ts` 구성 경고
-  - 중복 native dependency 경고
-  - Expo 패치 버전 mismatch 경고
-- [ ] 최종 빌드 전에 의존성을 한 번 정리 설치한다.
-- [ ] `npx expo config --json` 결과로 실제 반영 설정을 다시 확인한다.
-- [ ] 배포용 `.env` 값이 맞는지 확인한다.
-  - 현재 production API URL은 `https://fliplyze.com/mob`
+- [ ] 앱 이름을 `FlipSync`로 생성한다.
+- [ ] 앱 유형을 `App`으로 선택한다.
+- [ ] 유/무료 여부를 결정한다.
+- [ ] 사용자 문의용 이메일을 등록한다.
+- [ ] Play App Signing 약관을 수락한다.
 
-## 3. 개인정보처리방침 / 계정삭제 외부 URL 준비
+## 4. 스토어 리스팅 입력
 
-- [x] 공개 웹 URL 경로를 코드에 반영했다.
-  - 현재 기준 개인정보처리방침 URL: `https://fliplyze.com/mob/legal/privacy-policy`
-  - 현재 기준 계정삭제 URL: `https://fliplyze.com/mob/legal/account-deletion`
-  - 현재 기준 지원 URL: `https://fliplyze.com/mob/support`
-- [ ] 실제 운영 서버에 배포한 뒤 외부에서 정상 접속되는지 확인한다.
-- [ ] 앱 내부 화면 내용과 외부 공개 페이지 내용이 서로 일치하는지 확인한다.
-- [ ] 외부 페이지에 아래 내용을 명확히 적는다.
-  - 어떤 데이터를 수집하는지
-  - 어떤 목적으로 사용하는지
-  - 얼마나 보관하는지
-  - 계정 삭제 시 무엇이 즉시 삭제되는지
-  - 예외적으로 보관되는 데이터가 있는지
-  - 문의 이메일
+- [ ] 앱 이름 30자 이하
+- [ ] 짧은 설명 80자 이하
+- [ ] 전체 설명 4000자 이하
+- [ ] 앱 아이콘 512x512 PNG
+- [ ] 피처 그래픽 1024x500
+- [ ] 휴대폰 스크린샷 최소 2장
 
-## 4. 계정 삭제 정책과 운영 절차 확정
+초안 문구는 [D:\codex\flip-sync\flip-sync-mobile\docs\store-submission-draft.md](D:/codex/flip-sync/flip-sync-mobile/docs/store-submission-draft.md)에 정리합니다.
 
-- [ ] 앱 내 계정 삭제 플로우가 실제 운영 정책과 일치하는지 확인한다.
-- [ ] 서버 API 삭제 동작을 운영 환경에서 재검증한다.
-- [ ] 계정 삭제 후 남는 데이터 정책을 문서화한다.
-  - 프로필
-  - 업로드한 악보 이미지
-  - 조직 데이터
-  - 로그
-- [ ] 계정 삭제 요청 처리 SLA를 정한다.
-- [ ] 고객 문의 메일 대응 담당자와 응답 기준을 정한다.
+## 5. 공개 URL 점검
 
-## 5. 스토어 메타데이터 초안 작성
+- [ ] 개인정보처리방침 URL
+  - `https://fliplyze.com/mob/legal/privacy-policy`
+- [ ] 계정 삭제 안내 URL
+  - `https://fliplyze.com/mob/legal/account-deletion`
+- [ ] 지원 URL
+  - `https://fliplyze.com/mob/support`
+- [ ] 위 URL이 모바일 브라우저에서 실제로 열리는지 확인한다.
 
-- [ ] 앱 이름 최종안을 확정한다.
-- [ ] 짧은 소개 문구를 작성한다.
-- [ ] 상세 설명 문구를 작성한다.
-- [ ] 주요 기능 3~5개를 스토어 설명용으로 정리한다.
-- [ ] 고객 문의 이메일, 개인정보처리방침 URL, 계정삭제 URL을 정리한다.
-- [ ] 심사용 안내 문구를 작성한다.
-  - 로그인 방법
-  - 테스트 계정
-  - 조직 선택 방법
-  - 주요 기능 진입 경로
+## 6. 앱 접근 심사 정보 준비
 
-## 6. 심사용 테스트 계정 준비
+- [ ] 심사용 테스트 계정을 만든다.
+- [ ] 테스트 계정이 로그인부터 주요 기능까지 모두 접근 가능한지 확인한다.
+- [ ] 심사용 로그인 절차를 한글/영문으로 짧게 정리한다.
+- [ ] OTP, 이메일 인증, 관리자 승인 같은 추가 진입 조건이 있으면 우회 방법 또는 테스트용 절차를 준비한다.
 
-- [ ] 리뷰어가 바로 로그인할 수 있는 테스트 계정을 만든다.
-- [ ] 테스트 계정이 속한 조직과 방 데이터를 준비한다.
-- [ ] 아래 기능이 모두 확인 가능한 상태로 만든다.
-  - 로그인
-  - 조직 선택
-  - 프로필 수정
-  - 악보 업로드
-  - 방 초대
-  - 계정 삭제 안내 또는 실제 삭제
-- [ ] 테스트 계정의 비밀번호 변경, 만료, 2차 인증 등 심사 방해 요소가 없는지 확인한다.
+## 7. 정책/설문 입력
 
-## 7. 스토어 등록용 이미지 자산 준비
-
-- [ ] Google Play용 스크린샷을 준비한다.
-- [ ] App Store용 iPhone 스크린샷을 준비한다.
-- [ ] iPad 지원을 유지하면 iPad 스크린샷도 준비한다.
-- [ ] 필요 시 Google Play feature graphic을 만든다.
-- [ ] 앱 아이콘이 스토어 기준에서 깨지지 않는지 확인한다.
-- [ ] 첫 화면, 조직 선택, 방 목록, 악보 업로드, 프로필, 계정삭제 안내 화면 중심으로 캡처한다.
-
-## 8. 개인정보 공개 항목 작성
-
-- [ ] Google Play Data Safety 항목을 작성한다.
-- [ ] Apple App Privacy 항목을 작성한다.
-- [ ] 실제 앱 동작과 설명이 정확히 일치하는지 검토한다.
-- [ ] 아래 데이터 항목별로 수집/공유/추적 여부를 정리한다.
-  - 이메일
-  - 사용자 이름
-  - 프로필 이미지
-  - 업로드 이미지
-  - 기기 정보
-  - 오류 로그
-  - 계정 식별자
-
-## 9. 콘솔 계정 및 제출 환경 준비
-
-- [ ] Google Play Console 앱을 생성한다.
-- [ ] App Store Connect 앱을 생성한다.
-- [ ] Apple 번들 ID와 Google 패키지명이 콘솔 설정과 일치하는지 확인한다.
-- [ ] App Store Connect의 `ascAppId` 값을 확보한다.
-- [ ] Apple Team ID가 여러 개면 사용할 팀을 확정한다.
-- [ ] Android 자동 제출을 쓸 경우 서비스 계정 키 또는 Expo credentials 구성을 준비한다.
-- [ ] iOS 자동 제출을 쓸 경우 App Store Connect API Key 구성을 준비한다.
-
-## 10. 실제 빌드 전 최종 점검
-
-- [ ] 운영 API로 로그인/회원가입/조직 선택이 정상 동작하는지 확인한다.
-- [ ] 업로드 기능이 운영 환경에서 정상 동작하는지 확인한다.
-- [ ] 초대 링크가 정상 동작하는지 확인한다.
-- [ ] 로그아웃 후 재로그인 동작을 확인한다.
-- [ ] 계정 삭제 API를 테스트 계정으로 실제 검증한다.
-- [ ] 크래시나 치명적인 레이아웃 깨짐이 없는지 Android/iPhone에서 확인한다.
-
-## 11. 내부 테스트 빌드 배포
-
-- [ ] Android internal test 빌드를 만든다.
-- [ ] iOS TestFlight 빌드를 만든다.
-- [ ] 실제 기기에서 QA 체크리스트를 돌린다.
-- [ ] 발견된 이슈를 수정하고 다시 빌드한다.
-
-## 12. 스토어 입력값 채우기
-
-### Google Play
-
-- [ ] 앱 설명 입력
-- [ ] 카테고리 선택
-- [ ] 연락처 정보 입력
-- [ ] 개인정보처리방침 URL 입력
-- [ ] 계정삭제 URL 입력
-- [ ] Data Safety 입력
-- [ ] App access 입력
+- [ ] Data safety 작성
+- [ ] App access 작성
 - [ ] 콘텐츠 등급 설문 작성
+- [ ] 광고 사용 여부 선언
+- [ ] 타깃 연령층 및 아동 대상 여부 선언
 
-### Apple App Store
+Data safety 초안은 [D:\codex\flip-sync\flip-sync-mobile\docs\google-play-data-safety-draft.md](D:/codex/flip-sync/flip-sync-mobile/docs/google-play-data-safety-draft.md)에 정리합니다.
 
-- [ ] 앱 설명 입력
-- [ ] 키워드 입력
-- [ ] 지원 URL 입력
-- [ ] 마케팅 URL이 있으면 입력
-- [ ] 개인정보처리방침 URL 입력
-- [ ] App Privacy 입력
-- [ ] App Review Information 입력
-  - 테스트 계정
-  - 로그인 절차
-  - 리뷰어 참고사항
+## 8. 계정 삭제 정책 확인
 
-## 13. 프로덕션 빌드 및 제출
+- [ ] 앱 안에서 계정 삭제 진입이 가능한지 확인한다.
+- [ ] 계정 삭제 후 세션이 정리되는지 확인한다.
+- [ ] 계정 삭제 정책 설명과 실제 동작이 일치하는지 확인한다.
 
-- [ ] Android production 빌드를 생성한다.
-- [ ] iOS production 빌드를 생성한다.
-- [ ] 스토어 업로드 직전 버전 번호를 다시 확인한다.
-- [ ] Google Play에 업로드한다.
-- [ ] App Store Connect에 업로드한다.
-- [ ] 제출 직후 심사 상태를 추적한다.
+## 9. 테스트 트랙 배포
 
-## 14. 심사 대응 준비
+- [ ] Internal testing 또는 Closed testing에 먼저 업로드한다.
+- [ ] 개인 개발자 계정이라면 생산 배포 전 `12명 이상 / 14일 이상` Closed test 요건이 필요한지 Play Console에서 확인한다.
+- [ ] 테스트 피드백을 반영하고 새 빌드를 다시 올린다.
 
-- [ ] 리뷰 리젝 사유 대응 담당자를 정한다.
-- [ ] 계정 삭제, 개인정보, 로그인 접근, 권한 사용 사유에 대한 답변 템플릿을 준비한다.
-- [ ] 테스트 계정이 심사 기간 동안 유지되도록 관리한다.
+Closed test 운영 문안은 [D:\codex\flip-sync\flip-sync-mobile\docs\google-play-closed-test-plan.md](D:/codex/flip-sync/flip-sync-mobile/docs/google-play-closed-test-plan.md)에 정리합니다.
 
-## 빠르게 먼저 해야 하는 우선순위
+## 10. 최종 출시 전 확인
 
-1. 외부 공개용 개인정보처리방침 URL과 계정삭제 URL 만들기
-2. 불필요한 권한 제거 여부 결정 및 Expo 설정 정리
-3. iPad 지원 유지 여부 결정
-4. 테스트 계정과 심사용 설명 준비
-5. 스토어 스크린샷 및 설명 문구 준비
-6. Google Play / App Store Connect 콘솔 입력값 채우기
-7. 내부 테스트 빌드 후 production 제출
+- [ ] 로그인
+- [ ] 회원가입
+- [ ] 이메일 인증
+- [ ] 조직 선택
+- [ ] 악보 업로드
+- [ ] 프로필 수정
+- [ ] 계정 삭제
+- [ ] 개인정보처리방침 / 계정 삭제 / 지원 페이지 진입
 
-## 참고 메모
+## 11. 프로덕션 제출
 
-- 앱 내부의 법률/삭제 화면은 이미 구현되어 있으므로, 지금 가장 중요한 것은 외부 공개 URL과 스토어 메타데이터 준비다.
-- EAS 빌드 스크립트는 이미 있으므로, 설정 정리 후 빌드 자체는 빠르게 진행할 수 있다.
-- 첫 출시라면 Android 수동 첫 업로드와 Apple 리뷰 정보 입력을 미리 준비하는 것이 안전하다.
+- [ ] Production release 생성
+- [ ] 국가/배포 대상 설정
+- [ ] 심사 노트 입력
+- [ ] 초안 저장 후 최종 검토
+- [ ] 제출

@@ -1,12 +1,13 @@
 import { roomApi } from "@/api/room";
-import { tCreateRoom, tJoinRoom, tKickRoomMember, tLeaveRoom, tTransferRoomOwner } from "@/api/room";
+import { tCreateRoom, tJoinRoom, tKickRoomMember, tLeaveRoom, tRoomSortDirection, tTransferRoomOwner } from "@/api/room";
 import { useActiveOrganizationSession } from "@/common";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-export const useRoom = (props?: { groupId: number }) => {
+export const useRoom = (props?: { groupId?: number; sortDirection?: tRoomSortDirection }) => {
     const queryClient = useQueryClient();
     const activeOrganization = useActiveOrganizationSession();
     const activeOrganizationId = activeOrganization?.id;
+    const sortDirection = props?.sortDirection ?? "desc";
     const refreshRoomCaches = (groupId?: number) => {
         void Promise.all([
             queryClient.invalidateQueries({ queryKey: ["rooms", activeOrganizationId] }),
@@ -29,8 +30,8 @@ export const useRoom = (props?: { groupId: number }) => {
         refetch: refetchRoomList,
         error
     } = useInfiniteQuery({
-        queryKey: ["rooms", activeOrganizationId],
-        queryFn: ({ pageParam }) => roomApi.getRoomList(pageParam),
+        queryKey: ["rooms", activeOrganizationId, sortDirection],
+        queryFn: ({ pageParam }) => roomApi.getRoomList(pageParam, sortDirection),
         initialPageParam: 0,
         enabled: Boolean(activeOrganizationId),
         getNextPageParam: lastPage => {

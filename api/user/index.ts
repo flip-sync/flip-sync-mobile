@@ -19,7 +19,12 @@ export interface IUserApi {
 export const userApi: IUserApi = {
     getMyProfile: () => baseUrl.get("/user/me"),
     updateMyProfile: payload => baseUrl.put("/user/me", payload),
-    updateMyProfileImage: formData => baseUrl.put("/user/me/profile-image", formData),
+    updateMyProfileImage: formData =>
+        baseUrl.put("/user/me/profile-image", formData, {
+            headers: {
+                "Content-Type": "multipart/form-data"
+            }
+        }),
     updateMyEmail: payload => baseUrl.put("/user/me/email", payload),
     deleteMyAccount: payload => baseUrl.delete("/user/me", { data: payload })
 };

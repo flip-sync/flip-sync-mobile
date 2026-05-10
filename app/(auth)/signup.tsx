@@ -240,7 +240,7 @@ export default function SignUp() {
       : "인증번호는 60초에 한 번만 요청할 수 있습니다.";
 
   return (
-    <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.gray8 }]}>
+    <SafeAreaView edges={["left", "right", "bottom"]} style={[styles.safeArea, { backgroundColor: theme.gray8 }]}>
       <KeyboardAvoidingView
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         style={styles.flex}

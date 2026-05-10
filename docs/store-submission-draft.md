@@ -1,146 +1,84 @@
-# FlipSync 스토어 제출 문구 초안
+# FlipSync Google Play 제출 문구 초안
 
-이 문서는 Google Play Console과 App Store Connect에 입력할 문구 초안입니다.
+이 문서는 Google Play Console에 입력할 기본 문구 초안입니다.
 
-아직 외부 공개 URL과 리뷰어 테스트 계정은 확정되지 않았으므로, 아래의 `[TODO]` 항목을 실제 값으로 바꾼 뒤 사용합니다.
+## 앱 기본 정보
 
-현재 코드 기준 공개 URL 경로는 아래를 기준으로 정리했습니다.
-
+- 앱 이름: `FlipSync`
+- 패키지명: `com.fliplyze.flipsync`
+- 문의 이메일: `flipsync.score@gmail.com`
 - 개인정보처리방침: `https://fliplyze.com/mob/legal/privacy-policy`
-- 계정삭제 안내: `https://fliplyze.com/mob/legal/account-deletion`
-- 고객 지원: `https://fliplyze.com/mob/support`
+- 계정 삭제 안내: `https://fliplyze.com/mob/legal/account-deletion`
+- 지원 페이지: `https://fliplyze.com/mob/support`
 
-## 1. 기본 정보
+## 짧은 설명
 
-- 앱 이름
-  - `FlipSync`
-- 추천 카테고리
-  - Google Play: `Music & Audio`
-  - App Store: `Music`
-- 고객 문의 이메일
-  - `flipsync.score@gmail.com`
-- 권장 외부 URL
-  - 개인정보처리방침: `https://fliplyze.com/mob/legal/privacy-policy`
-  - 계정삭제 안내: `https://fliplyze.com/mob/legal/account-deletion`
-  - 지원 페이지: `https://fliplyze.com/mob/support`
+`합주 팀을 위한 악보 공유와 연습방 관리 앱`
 
-## 2. 앱 소개 한 줄
+## 짧은 설명 대안
 
-- 추천 문구
-  - `합주 팀을 위한 악보 공유와 연습방 관리 앱`
+### 안 1
 
-## 3. Google Play 초안
+`합주 팀을 위한 악보 공유와 연습방 관리 앱`
 
-### 짧은 설명
+### 안 2
 
-`합주 팀이 악보를 모으고, 공유방에서 함께 보고, 소속별로 정리할 수 있는 앱`
+`팀별 악보를 모아 보고 공유하는 합주 연습 도구`
 
-### 자세한 설명
+### 안 3
 
-`FlipSync는 합주 팀과 소규모 음악 그룹을 위한 악보 공유 앱입니다. 소속을 선택해 팀 단위로 정리하고, 악보 창고에 악보를 모아두고, 공유방으로 필요한 악보를 바로 보낼 수 있습니다.`
+`밴드와 동아리를 위한 악보 공유 및 팀 연습 관리`
 
-`팀원들은 초대 링크나 초대 코드로 같은 공간에 참여할 수 있고, 방 안에서 공유된 악보를 함께 확인할 수 있습니다. 프로필 이미지 설정, 이메일 기반 회원가입과 로그인, 소속 전환, 계정 삭제 안내도 앱 안에서 바로 확인할 수 있습니다.`
+## 전체 설명
 
-`FlipSync는 종이 악보를 단순히 보관하는 데서 끝나지 않고, 연습 전에 필요한 악보를 빠르게 공유하고 팀 단위로 정리하는 흐름에 맞춰 설계되었습니다. 합주 준비, 리허설 전 정리, 팀별 악보 관리가 필요한 사용자에게 적합합니다.`
+`FlipSync는 합주 팀과 밴드, 동아리, 소규모 음악 그룹을 위한 악보 공유 앱입니다. 팀별로 악보를 정리하고, 연습에 필요한 자료를 빠르게 모아 보고, 공유방 안에서 필요한 악보를 바로 확인할 수 있습니다.`
 
-### App Access 입력용 초안
+`이메일 기반 회원가입과 로그인, 조직 선택, 공유방 참여, 악보 업로드, 프로필 이미지 설정, 계정 삭제 안내까지 앱 안에서 바로 사용할 수 있습니다. 종이 악보를 단순히 보관하는 데서 끝나지 않고, 연습 전에 필요한 자료를 빠르게 공유하고 팀 단위로 정리하는 흐름에 맞춰 설계했습니다.`
 
-- 앱 접근 제한 여부
-  - `예. 로그인 필요`
-- 리뷰어 안내 문구
-  - `이 앱은 로그인 후 사용할 수 있습니다. 아래 테스트 계정으로 로그인한 뒤 소속을 선택하면 공유방과 악보 창고 기능을 확인할 수 있습니다.`
-- 테스트 계정
-  - 이메일: `[TODO]`
-  - 비밀번호: `[TODO]`
-- 리뷰 경로
-  - `1. 로그인`
-  - `2. 소속 선택`
-  - `3. 악보 창고 확인`
-  - `4. 공유방 입장`
-  - `5. 악보 업로드 또는 공유 악보 보기`
+`합주 준비, 파트별 자료 정리, 팀 내 악보 관리가 필요한 사용자에게 적합합니다.`
 
-## 4. App Store 초안
+## 주요 기능 요약
 
-### 부제
+- 조직 단위로 합주 팀 관리
+- 공유방별 악보 정리
+- 이미지 기반 악보 업로드
+- 팀원과 악보 공유
+- 프로필 관리 및 계정 삭제 지원
 
-`합주 팀 악보 공유와 연습 관리`
+## App access 초안
 
-### 홍보 문구
+- 로그인 필요 여부: `예`
+- 테스트 계정 이메일: `[TODO]`
+- 테스트 계정 비밀번호: `[TODO]`
+- 추가 인증 우회 방법: `[필요 시 TODO]`
 
-`팀별 악보를 한곳에 모으고, 공유방에서 함께 확인해 보세요.`
+### 심사자 안내 문구
 
-### 키워드 초안
+`FlipSync는 로그인 후 사용할 수 있는 악보 공유 앱입니다. 아래 테스트 계정으로 로그인하면 조직 선택, 공유방 진입, 악보 확인, 프로필 수정, 계정 삭제 경로까지 검토할 수 있습니다.`
 
-`악보,합주,밴드,음악,연습,공유,팀,공연`
+### 심사자 확인 경로
 
-### 설명
+1. 로그인
+2. 조직 선택
+3. 공유방 목록 확인
+4. 악보 업로드 또는 악보 조회
+5. 프로필 수정
+6. 계정 삭제 화면 진입
 
-`FlipSync는 합주 팀을 위한 악보 공유 앱입니다. 팀 소속을 기준으로 악보를 정리하고, 악보 창고에 필요한 자료를 모아두고, 공유방에서 팀원들과 같은 악보를 함께 확인할 수 있습니다.`
+### Play Console 붙여넣기용 App access 예시
 
-`이메일 기반 회원가입과 로그인, 소속 선택, 초대 링크를 통한 방 참여, 프로필 이미지 설정, 악보 업로드와 정리 기능을 제공합니다. 악보를 팀 단위로 관리하고 연습 전에 빠르게 공유해야 하는 사용자에게 적합합니다.`
+`This app requires login. Please use the test account below to review the app. After signing in, you can select an organization, open a room, view uploaded score images, update the profile, and access the in-app account deletion flow.`
 
-### App Review Information 초안
+- Test email: `[TODO]`
+- Test password: `[TODO]`
+- Additional steps: `After login, select the sample organization shown on the first screen.`
 
-- 연락처 이름
-  - `[TODO]`
-- 연락처 이메일
-  - `flipsync.score@gmail.com`
-- 연락처 전화번호
-  - `[TODO]`
-- 리뷰어 계정
-  - Apple ID 계정이 아니라 앱 로그인 계정을 입력
-  - 이메일: `[TODO]`
-  - 비밀번호: `[TODO]`
-- 리뷰 노트
-  - `FlipSync는 로그인 후 사용할 수 있는 합주 팀용 악보 공유 앱입니다.`
-  - `로그인 후 첫 화면에서 사용할 소속을 선택하면 공유방과 악보 창고를 확인할 수 있습니다.`
-  - `테스트 계정에는 최소 1개의 소속, 1개의 공유방, 여러 장의 악보 예시 데이터를 준비해 주세요.`
-  - `초대 링크 동작을 검토하려면 [TODO: 초대 테스트 경로 또는 링크]를 함께 제공해 주세요.`
+### 심사 메모 예시
 
-## 5. 스크린샷 구성안
+`The review account is a reusable test account. It has sample organization data, at least one room, and uploaded sample score images so the reviewer can access core functionality without additional setup.`
 
-### 공통 필수 컷
+## 심사 메모
 
-- 로그인 화면
-- 회원가입 화면
-- 소속 선택 화면
-- 악보 창고 화면
-- 공유방 화면
-- 악보 업로드 화면
-- 프로필 수정 화면
-- 계정삭제 안내 화면
-
-### 추가로 있으면 좋은 컷
-
-- 초대 링크 진입 화면
-- 악보 상세 보기 화면
-- 소속 추가 또는 초대 코드 참여 화면
-
-## 6. Data Safety / App Privacy 작성 메모
-
-- 계정 정보
-  - 이메일
-  - 이름
-  - 비밀번호
-- 사용자 콘텐츠
-  - 프로필 이미지
-  - 업로드한 악보 이미지
-- 서비스 운영 정보
-  - 소속 정보
-  - 공유방 참여 정보
-  - 기본 접근 로그 및 오류 로그 `[운영 기준 최종 확인 필요]`
-
-아래 항목은 실제 서버 운영 방식과 맞는지 최종 검수 후 제출합니다.
-
-- 데이터 보관 기간
-- 외부 처리 위탁 여부
-- 제3자 제공 여부
-- 추적 사용 여부
-- 광고 SDK 사용 여부
-
-## 7. 제출 전에 바꿔야 하는 TODO
-
-- `[TODO]` 리뷰어 테스트 계정 입력
-- `[TODO]` 연락처 이름/전화번호 입력
-- `[TODO]` 초대 테스트 경로 입력
-- iPad 지원을 유지할 경우 iPad 스크린샷 추가 준비
+- 지원 URL, 개인정보처리방침 URL, 계정 삭제 안내 URL은 공개 URL이어야 합니다.
+- 테스트 계정은 심사 기간 동안 항상 유효해야 합니다.
+- 테스트 계정에는 최소 1개 조직, 1개 이상 공유방, 샘플 악보 데이터가 있는 편이 안전합니다.

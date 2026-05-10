@@ -1,7 +1,8 @@
-import { ActivityIndicator, FlatList, StyleSheet, View } from "react-native";
+import { useCallback, useRef, useState } from "react";
+import { ActivityIndicator, FlatList, Pressable, StyleSheet, View } from "react-native";
 
 import { useRouter } from "expo-router";
-import { tRoom } from "@/api/room";
+import { tRoom, tRoomSortDirection } from "@/api/room";
 import { useFlipTheme } from "@/common";
 import { FloatingButton } from "@/components/base/Button/FloatingButton";
 import FlipIcon from "@/components/base/imgs/FlipIcon";
@@ -13,12 +14,14 @@ import { useCheckDevice } from "@/hooks/useCheckDevice";
 import FlipStyles from "@/styles";
 
 const COPY = {
-    latest: "\ucd5c\uc2e0\uc21c"
+    latest: "\ucd5c\uc2e0\uc21c",
+    oldest: "오래된순"
 } as const;
 
 export default function RoomList() {
     const theme = useFlipTheme();
     const router = useRouter();
+    const [sortDirection, setSortDirection] = useState<tRoomSortDirection>("desc");
     const {
         roomList,
         myRoomList,
@@ -29,9 +32,21 @@ export default function RoomList() {
         isLoadingMyRoomList,
         isRefreshingRoomList,
         refreshRoomLists
-    } = useRoom();
+    } = useRoom({ sortDirection });
     const { isTablet } = useCheckDevice();
     const joinedRoomIds = new Set((myRoomList?.data.content ?? []).map(room => room.id));
+    const listRef = useRef<FlatList<tRoom>>(null);
+    const sortLabel = sortDirection === "desc" ? COPY.latest : COPY.oldest;
+
+    const handlePressLatestSort = useCallback(() => {
+        setSortDirection(current => (current === "desc" ? "asc" : "desc"));
+        requestAnimationFrame(() => {
+            listRef.current?.scrollToOffset({
+                offset: 0,
+                animated: true
+            });
+        });
+    }, []);
 
     const onPressRoomCard = (room: tRoom) => {
         const id = room.id;
@@ -68,13 +83,19 @@ export default function RoomList() {
             ]}
         >
             <RowView style={styles.header} justifyContent="flex-end">
-                <View style={styles.headerMeta}>
-                    <FlipIcon icon="icon-arrow-up-down" size={16} />
-                    <DefaultText Button3>{COPY.latest}</DefaultText>
-                </View>
+                <Pressable
+                    onPress={handlePressLatestSort}
+                    style={[styles.headerMeta, styles.sortButton, { borderColor: theme.primaryLight, backgroundColor: theme.white }]}
+                >
+                    <FlipIcon icon="icon-arrow-up-down" size={16} color={theme.primary} />
+                    <DefaultText Button3 weight="700" color={theme.primary}>
+                        {sortLabel}
+                    </DefaultText>
+                </Pressable>
             </RowView>
             <FloatingButton onPress={() => router.push("/(score)/createRoomModal")} />
             <FlatList
+                ref={listRef}
                 data={rooms}
                 key={isTablet ? "room-grid-2" : "room-grid-1"}
                 style={[
@@ -122,6 +143,13 @@ const styles = StyleSheet.create({
         flexDirection: "row",
         alignItems: "center",
         gap: FlipStyles.adjustScale(4)
+    },
+    sortButton: {
+        minHeight: FlipStyles.adjustScale(34),
+        borderWidth: 1,
+        borderRadius: FlipStyles.adjustScale(999),
+        paddingHorizontal: FlipStyles.adjustScale(10),
+        justifyContent: "center"
     },
     roomList: {
         flex: 1
