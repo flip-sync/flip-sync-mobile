@@ -3,7 +3,7 @@ import DefaultText from "@/components/base/Text";
 import FormTextInput from "@/components/base/TextInput/FormTextInput";
 import FlipStyles from "@/styles";
 import { Stack, useRouter } from "expo-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -39,6 +39,7 @@ export default function ResetPasswordScreen() {
   const [verifiedEmail, setVerifiedEmail] = useState<string | null>(null);
   const [message, setMessage] = useState<StatusMessage | null>(null);
   const [pendingAction, setPendingAction] = useState<"request" | "verify" | "reset" | null>(null);
+  const scrollViewRef = useRef<ScrollView>(null);
 
   const normalizedEmail = email.trim();
   const isVerified = verifiedEmail === normalizedEmail && normalizedEmail.length > 0;
@@ -60,6 +61,12 @@ export default function ResetPasswordScreen() {
     setRequestedEmail(null);
     setVerifiedEmail(null);
     clearMessage();
+  };
+
+  const scrollToPasswordFields = () => {
+    requestAnimationFrame(() => {
+      scrollViewRef.current?.scrollToEnd({ animated: true });
+    });
   };
 
   const handleRequestCode = async () => {
@@ -172,10 +179,12 @@ export default function ResetPasswordScreen() {
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.gray8 }]}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.flex}
       >
         <ScrollView
+          ref={scrollViewRef}
+          automaticallyAdjustKeyboardInsets
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
@@ -298,6 +307,7 @@ export default function ResetPasswordScreen() {
                 autoCapitalize="none"
                 textContentType="newPassword"
                 containerStyle={styles.fieldGap}
+                onFocus={scrollToPasswordFields}
                 onChangeText={value => {
                   setPassword(value);
                   clearMessage();
@@ -311,6 +321,7 @@ export default function ResetPasswordScreen() {
                 autoCapitalize="none"
                 textContentType="newPassword"
                 containerStyle={styles.fieldGap}
+                onFocus={scrollToPasswordFields}
                 onChangeText={value => {
                   setPasswordConfirm(value);
                   clearMessage();
@@ -354,7 +365,8 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: FlipStyles.basePadding,
-    paddingVertical: FlipStyles.adjustScale(24)
+    paddingTop: FlipStyles.adjustScale(24),
+    paddingBottom: FlipStyles.adjustScale(120)
   },
   card: {
     borderRadius: FlipStyles.adjustScale(28),

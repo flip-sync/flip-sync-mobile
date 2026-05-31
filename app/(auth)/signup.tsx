@@ -3,7 +3,7 @@ import DefaultText from "@/components/base/Text";
 import FormTextInput from "@/components/base/TextInput/FormTextInput";
 import FlipStyles from "@/styles";
 import { Stack, useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -43,6 +43,7 @@ const getCooldownSecondsFromMessage = (message: string) => {
 export default function SignUp() {
   const theme = useFlipTheme();
   const router = useRouter();
+  const scrollViewRef = useRef<ScrollView>(null);
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
   const [name, setName] = useState("");
@@ -92,6 +93,14 @@ export default function SignUp() {
     if (message) {
       setMessage(null);
     }
+  };
+
+  const scrollToPasswordFields = () => {
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        scrollViewRef.current?.scrollToEnd({ animated: true });
+      }, 80);
+    });
   };
 
   const handleEmailChange = (value: string) => {
@@ -242,11 +251,13 @@ export default function SignUp() {
   return (
     <SafeAreaView edges={["left", "right", "bottom"]} style={[styles.safeArea, { backgroundColor: theme.gray8 }]}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.flex}
       >
         <ScrollView
+          ref={scrollViewRef}
           keyboardShouldPersistTaps="handled"
+          automaticallyAdjustKeyboardInsets
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
@@ -391,6 +402,7 @@ export default function SignUp() {
                 autoCapitalize="none"
                 textContentType="newPassword"
                 containerStyle={styles.fieldGap}
+                onFocus={scrollToPasswordFields}
                 onChangeText={value => {
                   setPassword(value);
                   clearMessage();
@@ -403,6 +415,7 @@ export default function SignUp() {
                 secureTextEntry
                 autoCapitalize="none"
                 textContentType="newPassword"
+                onFocus={scrollToPasswordFields}
                 onChangeText={value => {
                   setPasswordConfirm(value);
                   clearMessage();
@@ -471,7 +484,8 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: FlipStyles.basePadding,
-    paddingVertical: FlipStyles.adjustScale(24)
+    paddingTop: FlipStyles.adjustScale(24),
+    paddingBottom: FlipStyles.adjustScale(120)
   },
   card: {
     borderRadius: FlipStyles.adjustScale(28),

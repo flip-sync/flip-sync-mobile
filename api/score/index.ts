@@ -1,12 +1,14 @@
 import { baseUrl } from "..";
 import { IApiResponse, IPagination } from "../types";
+import type { AxiosProgressEvent } from "axios";
 import {
     tCreateOrganizationScore,
     tCreateScore,
     tOrganizationScoreSearch,
     tScoreDetail,
     tScoreList,
-    tScoreSearch
+    tScoreSearch,
+    tUploadProgressHandler
 } from "./types";
 
 export interface IScoreApi {
@@ -19,6 +21,16 @@ export interface IScoreApi {
     deleteOrganizationScore: (scoreId: number) => Promise<IApiResponse<void>>;
     sendOrganizationScoreToGroup: (scoreId: number, groupId: number) => Promise<IApiResponse<number>>;
 }
+
+const createUploadProgressHandler =
+    (onUploadProgress?: tUploadProgressHandler) =>
+    (event: AxiosProgressEvent) => {
+        if (!onUploadProgress || !event.total) {
+            return;
+        }
+
+        onUploadProgress(Math.min(1, event.loaded / event.total));
+    };
 
 export const scoreApi: IScoreApi = {
     getScoreList: ({ pageParam, groupId, sortDirection = "desc" }: tScoreSearch) => {
@@ -37,7 +49,8 @@ export const scoreApi: IScoreApi = {
         return baseUrl.post(`/group/${props?.groupId}/score`, props?.formData, {
             headers: {
                 "Content-Type": "multipart/form-data"
-            }
+            },
+            onUploadProgress: createUploadProgressHandler(props.onUploadProgress)
         });
     },
     getOrganizationScoreList: ({
@@ -63,11 +76,12 @@ export const scoreApi: IScoreApi = {
     getOrganizationScoreDetail: scoreId => {
         return baseUrl.get(`/organization/score/${scoreId}`);
     },
-    postOrganizationScore: ({ formData }: tCreateOrganizationScore) => {
+    postOrganizationScore: ({ formData, onUploadProgress }: tCreateOrganizationScore) => {
         return baseUrl.post(`/organization/score`, formData, {
             headers: {
                 "Content-Type": "multipart/form-data"
-            }
+            },
+            onUploadProgress: createUploadProgressHandler(onUploadProgress)
         });
     },
     deleteOrganizationScore: scoreId => {

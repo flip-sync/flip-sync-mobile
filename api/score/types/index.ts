@@ -1,12 +1,16 @@
 export type tSortDirection = "asc" | "desc";
 
+export type tUploadProgressHandler = (progress: number) => void;
+
 export type tCreateScore = {
     groupId: number;
     formData: FormData;
+    onUploadProgress?: tUploadProgressHandler;
 };
 
 export type tCreateOrganizationScore = {
     formData: FormData;
+    onUploadProgress?: tUploadProgressHandler;
 };
 
 export type tScoreList = tScoreSummary[];

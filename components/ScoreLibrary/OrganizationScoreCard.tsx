@@ -12,6 +12,8 @@ type OrganizationScoreCardProps = {
     sendMode?: boolean;
     canDelete?: boolean;
     onPressDelete?: () => void;
+    isFavorite?: boolean;
+    onPressFavorite?: () => void;
 };
 
 export const OrganizationScoreCard = ({
@@ -21,7 +23,9 @@ export const OrganizationScoreCard = ({
     thumbnail,
     onPress,
     canDelete = false,
-    onPressDelete
+    onPressDelete,
+    isFavorite = false,
+    onPressFavorite
 }: OrganizationScoreCardProps) => {
     return (
         <Pressable onPress={onPress} style={styles.card}>
@@ -34,6 +38,22 @@ export const OrganizationScoreCard = ({
                     cachePolicy="memory-disk"
                     recyclingKey={thumbnail}
                 />
+                {onPressFavorite ? (
+                    <Pressable
+                        onPress={event => {
+                            event.stopPropagation();
+                            onPressFavorite();
+                        }}
+                        style={[
+                            styles.favoriteButton,
+                            isFavorite ? styles.favoriteButtonActive : styles.favoriteButtonInactive
+                        ]}
+                    >
+                        <DefaultText Button3 weight="800" color={isFavorite ? "#FFFFFF" : "#2C9BC3"}>
+                            {isFavorite ? "저장됨" : "저장"}
+                        </DefaultText>
+                    </Pressable>
+                ) : null}
                 {canDelete && onPressDelete ? (
                     <Pressable
                         onPress={event => {
@@ -81,6 +101,23 @@ const styles = StyleSheet.create({
         width: "100%",
         borderRadius: FlipStyles.adjustScale(12),
         backgroundColor: "#E8EEF4"
+    },
+    favoriteButton: {
+        position: "absolute",
+        top: FlipStyles.adjustScale(10),
+        left: FlipStyles.adjustScale(10),
+        zIndex: 4,
+        minHeight: FlipStyles.adjustScale(26),
+        paddingHorizontal: FlipStyles.adjustScale(10),
+        borderRadius: FlipStyles.adjustScale(999),
+        alignItems: "center",
+        justifyContent: "center"
+    },
+    favoriteButtonActive: {
+        backgroundColor: "rgba(44, 155, 195, 0.92)"
+    },
+    favoriteButtonInactive: {
+        backgroundColor: "rgba(255, 255, 255, 0.9)"
     },
     deleteButton: {
         position: "absolute",

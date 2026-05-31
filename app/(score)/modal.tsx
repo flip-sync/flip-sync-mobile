@@ -12,14 +12,14 @@ import FlipStyles from "@/styles";
 import { isAxiosError } from "axios";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { Alert } from "react-native";
+import { Alert, KeyboardAvoidingView, Platform } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 const COPY = {
     participants: "참여 인원",
     join: "참여하기",
     roomFull: "정원이 가득 찼습니다.",
-    invalidPassword: "비밀번호는 숫자 8자리로 입력해 주세요.",
+    invalidPassword: "비밀번호는 숫자 4자리로 입력해 주세요.",
     wrongPassword: "비밀번호가 올바르지 않습니다.",
     joinFailed: "방 참여에 실패했습니다."
 } as const;
@@ -67,7 +67,7 @@ export default function RoomModal() {
             return;
         }
 
-        if (requiresPassword && !/^\d{8}$/.test(password.trim())) {
+        if (requiresPassword && !/^\d{4}$/.test(password.trim())) {
             Alert.alert(COPY.invalidPassword);
             return;
         }
@@ -118,6 +118,8 @@ export default function RoomModal() {
                 }
             ]}
         >
+            <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.flex}>
+                <View style={styles.modalInner}>
             <View>
                 <RowView
                     style={{
@@ -147,7 +149,7 @@ export default function RoomModal() {
                     </TouchableOpacity>
                 </RowView>
                 <View style={styles.profileWrap}>
-                    <ScrollView>
+                    <ScrollView keyboardShouldPersistTaps="handled">
                         <View style={styles.profileBox}>
                             {groupDetail?.data.map(user => {
                                 return <UserProfileCard key={user.id} name={user.name} />;
@@ -158,10 +160,10 @@ export default function RoomModal() {
                 {requiresPassword && (
                     <View style={styles.passwordSection}>
                         <FormInput
-                            placeholder="비밀번호 숫자8자리"
+                            placeholder="비밀번호 숫자 4자리"
                             value={password}
                             keyboardType="number-pad"
-                            maxLength={8}
+                            maxLength={4}
                             secureTextEntry
                             hasClearButton
                             onClearPress={() => setPassword("")}
@@ -193,6 +195,8 @@ export default function RoomModal() {
                     </DefaultText>
                 </TouchableOpacity>
             </View>
+                </View>
+            </KeyboardAvoidingView>
         </View>
     );
 }
@@ -210,6 +214,13 @@ const styles = StyleSheet.create({
         paddingHorizontal: FlipStyles.adjustScale(20),
         marginTop: FlipStyles.adjustScale(24),
         gap: FlipStyles.adjustScale(16)
+    },
+    flex: {
+        flex: 1
+    },
+    modalInner: {
+        flex: 1,
+        justifyContent: "space-between"
     },
     modalContent: {
         padding: 20,

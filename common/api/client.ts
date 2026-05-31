@@ -1,5 +1,5 @@
-import type { CommonResDto } from "./types";
-import { getAuthSession } from "./session";
+import type { CommonResDto, TokenResDto } from "./types";
+import { getStoredAuthSession, persistAuthSession, removeAuthSession } from "./session";
 import { getActiveOrganizationSession } from "./organization-session";
 import Constants from "expo-constants";
 
@@ -22,7 +22,10 @@ export const getApiBaseUrl = () => {
 type ApiRequestOptions = Omit<RequestInit, "body"> & {
   body?: BodyInit | Record<string, unknown> | null;
   skipJsonContentType?: boolean;
+  skipAuthRefresh?: boolean;
 };
+
+let refreshTokenPromise: Promise<TokenResDto> | null = null;
 
 const buildBody = (body: ApiRequestOptions["body"]) => {
   if (body == null) {
@@ -45,11 +48,54 @@ const buildBody = (body: ApiRequestOptions["body"]) => {
   return JSON.stringify(body);
 };
 
+export const refreshAccessToken = async () => {
+  if (refreshTokenPromise) {
+    return refreshTokenPromise;
+  }
+
+  refreshTokenPromise = (async () => {
+    const session = await getStoredAuthSession();
+    if (!session?.refreshToken) {
+      throw new Error("Missing refresh token");
+    }
+
+    const response = await fetch(`${getApiBaseUrl()}/user/login/refresh`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ refreshToken: session.refreshToken })
+    });
+    const text = await response.text();
+    const payload = text ? (JSON.parse(text) as CommonResDto<TokenResDto>) : null;
+
+    if (!response.ok || !payload?.data?.accessToken || !payload.data.refreshToken) {
+      await removeAuthSession();
+      throw new Error(payload?.message ?? "Failed to refresh access token");
+    }
+
+    await persistAuthSession(payload.data);
+    return payload.data;
+  })().finally(() => {
+    refreshTokenPromise = null;
+  });
+
+  return refreshTokenPromise;
+};
+
 export const apiRequest = async <T>(path: string, options: ApiRequestOptions = {}) => {
+  return requestWithOptionalRefresh<T>(path, options, false);
+};
+
+const requestWithOptionalRefresh = async <T>(
+  path: string,
+  options: ApiRequestOptions,
+  retried: boolean
+) => {
   const headers = new Headers(options.headers);
   const body = buildBody(options.body);
   const isFormDataBody = typeof FormData !== "undefined" && body instanceof FormData;
-  const authSession = getAuthSession();
+  const authSession = await getStoredAuthSession();
   const activeOrganizationSession = getActiveOrganizationSession();
 
   if (authSession?.accessToken && !headers.has("Authorization")) {
@@ -82,6 +128,17 @@ export const apiRequest = async <T>(path: string, options: ApiRequestOptions = {
   }
 
   if (!response.ok) {
+    const shouldRefresh =
+      !options.skipAuthRefresh &&
+      !retried &&
+      response.status === 401 &&
+      !path.includes("/user/login/refresh");
+
+    if (shouldRefresh) {
+      await refreshAccessToken();
+      return requestWithOptionalRefresh<T>(path, options, true);
+    }
+
     const errorMessage = payload?.message ?? response.statusText;
     throw new Error(errorMessage);
   }

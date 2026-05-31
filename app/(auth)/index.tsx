@@ -2,7 +2,7 @@
   ACTIVE_ORGANIZATION_STORAGE_KEY,
   clearActiveOrganizationSession,
   login,
-  setAuthSession,
+  persistAuthSession,
   useFlipTheme
 } from "@/common";
 import DefaultText from "@/components/base/Text";
@@ -107,9 +107,8 @@ export default function SignIn() {
         email: normalizedEmail,
         password: normalizedPassword
       });
-      await AsyncStorage.setItem("token", JSON.stringify(session));
       await AsyncStorage.removeItem(ACTIVE_ORGANIZATION_STORAGE_KEY);
-      setAuthSession(session);
+      await persistAuthSession(session);
       clearActiveOrganizationSession();
 
       setMessage({
@@ -147,10 +146,11 @@ export default function SignIn() {
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.gray8 }]}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.flex}
       >
         <ScrollView
+          automaticallyAdjustKeyboardInsets
           keyboardShouldPersistTaps="handled"
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
@@ -327,7 +327,8 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     justifyContent: "center",
     paddingHorizontal: FlipStyles.basePadding,
-    paddingVertical: FlipStyles.adjustScale(28)
+    paddingTop: FlipStyles.adjustScale(28),
+    paddingBottom: FlipStyles.adjustScale(96)
   },
   card: {
     position: "relative",

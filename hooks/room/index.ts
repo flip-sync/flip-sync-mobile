@@ -3,6 +3,8 @@ import { tCreateRoom, tJoinRoom, tKickRoomMember, tLeaveRoom, tRoomSortDirection
 import { useActiveOrganizationSession } from "@/common";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+export { useCreateRoomTemplate } from "./useCreateRoomTemplate";
+
 export const useRoom = (props?: { groupId?: number; sortDirection?: tRoomSortDirection }) => {
     const queryClient = useQueryClient();
     const activeOrganization = useActiveOrganizationSession();

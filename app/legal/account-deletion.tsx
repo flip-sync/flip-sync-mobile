@@ -2,16 +2,16 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
-import { Alert, Pressable, ScrollView, StyleSheet, View } from "react-native";
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { userApi } from "@/api/user";
 import {
     ACTIVE_ORGANIZATION_STORAGE_KEY,
     FLIPSYNC_SUPPORT_EMAIL,
     clearActiveOrganizationSession,
-    clearAuthSession,
     getAuthSession,
     openSupportMail,
+    removeAuthSession,
     subscribeAuthSession,
     useFlipTheme
 } from "@/common";
@@ -103,9 +103,8 @@ export default function AccountDeletionScreen() {
                             await deleteAccount({
                                 password: password.trim()
                             });
-                            await AsyncStorage.removeItem("token");
+                            await removeAuthSession();
                             await AsyncStorage.removeItem(ACTIVE_ORGANIZATION_STORAGE_KEY);
-                            clearAuthSession();
                             clearActiveOrganizationSession();
                             queryClient.clear();
                             Alert.alert("계정이 삭제되었습니다.");
@@ -126,8 +125,14 @@ export default function AccountDeletionScreen() {
 
     return (
         <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.gray8 }]}>
-            <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
-                <View style={[styles.card, { backgroundColor: theme.white }]}>
+            <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.flex}>
+                <ScrollView
+                    automaticallyAdjustKeyboardInsets
+                    contentContainerStyle={styles.scrollContent}
+                    keyboardShouldPersistTaps="handled"
+                    showsVerticalScrollIndicator={false}
+                >
+                    <View style={[styles.card, { backgroundColor: theme.white }]}>
                     <DefaultText Title3 weight="800" color={theme.gray2}>
                         계정 삭제
                     </DefaultText>
@@ -217,8 +222,9 @@ export default function AccountDeletionScreen() {
                             개인정보처리방침 보기
                         </DefaultText>
                     </Pressable>
-                </View>
-            </ScrollView>
+                    </View>
+                </ScrollView>
+            </KeyboardAvoidingView>
         </SafeAreaView>
     );
 }
@@ -227,9 +233,13 @@ const styles = StyleSheet.create({
     safeArea: {
         flex: 1
     },
+    flex: {
+        flex: 1
+    },
     scrollContent: {
         paddingHorizontal: FlipStyles.basePadding,
-        paddingVertical: FlipStyles.adjustScale(24)
+        paddingTop: FlipStyles.adjustScale(24),
+        paddingBottom: FlipStyles.adjustScale(120)
     },
     card: {
         borderRadius: FlipStyles.adjustScale(28),

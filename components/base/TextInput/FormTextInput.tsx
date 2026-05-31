@@ -7,6 +7,7 @@ import {
     Text,
     TextInput,
     TextInputProps,
+    TextStyle,
     TouchableOpacity,
     TouchableWithoutFeedback,
     View,
@@ -38,7 +39,7 @@ export type FormTextInputProps = {
     containerStyle?: StyleProp<ViewStyle>;
     textContainerStyle?: StyleProp<ViewStyle>;
     isDefaultReverseStyle?: boolean;
-    style?: StyleProp<ViewStyle>;
+    style?: StyleProp<TextStyle>;
     onChangeText?: (value: string) => void;
     onClearPress?: () => void;
     onValidPress?: () => void;
@@ -87,6 +88,9 @@ const FormInput = forwardRef<FormTextInputRef, FormTextInputProps>(
             onDropDownPress,
             onFocus,
             onBlur,
+            multiline = false,
+            numberOfLines = 1,
+            scrollEnabled,
             ...props
         },
         ref
@@ -151,6 +155,13 @@ const FormInput = forwardRef<FormTextInputRef, FormTextInputProps>(
             }
         }, [isOptional, isRequired, theme.gray3, theme.gray2]);
 
+        const singleLineTrailingPadding =
+            hasValidButton || unit || time
+                ? FlipStyles.adjustScale(84)
+                : hasClearButton || hasList
+                  ? FlipStyles.adjustScale(36)
+                  : 0;
+
         return (
             <View style={containerStyle} pointerEvents={inputPointerEventsNone}>
                 {!!label && (
@@ -198,10 +209,15 @@ const FormInput = forwardRef<FormTextInputRef, FormTextInputProps>(
                             placeholder={placeholder}
                             textContentType="emailAddress"
                             placeholderTextColor={theme.gray7}
+                            multiline={multiline}
+                            numberOfLines={multiline ? numberOfLines : 1}
+                            scrollEnabled={multiline ? scrollEnabled : false}
                             style={[
                                 {
                                     fontFamily: value ? "Pretendard-Medium" : "Pretendard-Regular",
-                                    width: "80%",
+                                    width: "100%",
+                                    minWidth: 0,
+                                    flexShrink: 1,
                                     color: theme.gray2,
                                     textDecorationLine: "none",
                                     height: FlipStyles.adjustScale(28),
@@ -209,6 +225,7 @@ const FormInput = forwardRef<FormTextInputRef, FormTextInputProps>(
                                     lineHeight: FlipStyles.adjustScale(22),
                                     padding: 0,
                                     paddingVertical: 0,
+                                    paddingRight: multiline ? 0 : singleLineTrailingPadding,
                                     margin: 0,
                                     textAlignVertical: "center",
                                     includeFontPadding: false

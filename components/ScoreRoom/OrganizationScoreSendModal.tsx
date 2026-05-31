@@ -5,7 +5,7 @@ import FlipIcon from "@/components/base/imgs/FlipIcon";
 import DefaultText from "@/components/base/Text";
 import { OrganizationScoreCard } from "@/components/ScoreLibrary/OrganizationScoreCard";
 import { ScoreCodeDropdown } from "@/components/ScoreLibrary/ScoreCodeDropdown";
-import { useOrganizationScoreLibrary } from "@/hooks/score";
+import { useOrganizationScoreLibrary, useOrganizationScoreQuickAccess } from "@/hooks/score";
 import { useCheckDevice } from "@/hooks/useCheckDevice";
 import FlipStyles from "@/styles";
 import { useCallback, useMemo, useRef, useState } from "react";
@@ -13,8 +13,11 @@ import {
     ActivityIndicator,
     Alert,
     FlatList,
+    KeyboardAvoidingView,
     Modal,
+    Platform,
     Pressable,
+    ScrollView,
     StyleSheet,
     TextInput,
     View,
@@ -67,7 +70,9 @@ const COPY = {
     empty: "아직 등록된 악보가 없습니다.",
     emptySearch: "검색 결과가 없습니다.",
     missingOrganization: "활성 소속이 없어 악보 창고를 불러오지 못했습니다.",
-    sendFailed: "악보 보내기에 실패했습니다."
+    sendFailed: "악보 보내기에 실패했습니다.",
+    favoriteScores: "즐겨찾기",
+    recentScores: "최근 사용"
 } as const;
 
 export const OrganizationScoreSendModal = ({
@@ -86,6 +91,13 @@ export const OrganizationScoreSendModal = ({
     const [sendingScoreId, setSendingScoreId] = useState<number | null>(null);
     const [sortDirection, setSortDirection] = useState<tSortDirection>("desc");
     const listRef = useRef<FlatList<tScoreSummary>>(null);
+    const activeFilterCount = useMemo(
+        () => Object.values(appliedFilters).filter(value => value.trim().length > 0).length,
+        [appliedFilters]
+    );
+    const hasAppliedFilters = activeFilterCount > 0;
+    const { favoriteScores, recentScores, isFavoriteScore, toggleFavoriteScore, registerRecentScore } =
+        useOrganizationScoreQuickAccess();
 
     const {
         organizationScoreList,
@@ -110,6 +122,12 @@ export const OrganizationScoreSendModal = ({
         [organizationScoreList?.pages, sortDirection]
     );
     const sortLabel = sortDirection === "desc" ? COPY.latest : COPY.oldest;
+    const favoritePreviewScores = useMemo(() => favoriteScores.slice(0, 8), [favoriteScores]);
+    const recentPreviewScores = useMemo(
+        () => recentScores.filter(score => !isFavoriteScore(score.id)).slice(0, 8),
+        [isFavoriteScore, recentScores]
+    );
+    const hasQuickAccess = !hasAppliedFilters && (favoritePreviewScores.length > 0 || recentPreviewScores.length > 0);
     const columnCount = isTablet ? 3 : 2;
     const gridGap = FlipStyles.adjustScale(12);
     const cardWidth = useMemo(() => {
@@ -118,13 +136,30 @@ export const OrganizationScoreSendModal = ({
         return Math.floor((width - horizontalPadding - totalGap) / columnCount);
     }, [columnCount, gridGap, width]);
 
-    const applySearch = () => {
+    const applySearch = useCallback(() => {
         setAppliedFilters({
             title: draftFilters.title.trim(),
             singer: draftFilters.singer.trim(),
             code: draftFilters.code.trim()
         });
-    };
+        requestAnimationFrame(() => {
+            listRef.current?.scrollToOffset({
+                offset: 0,
+                animated: true
+            });
+        });
+    }, [draftFilters.code, draftFilters.singer, draftFilters.title]);
+
+    const resetSearch = useCallback(() => {
+        setDraftFilters(DEFAULT_FILTERS);
+        setAppliedFilters(DEFAULT_FILTERS);
+        requestAnimationFrame(() => {
+            listRef.current?.scrollToOffset({
+                offset: 0,
+                animated: true
+            });
+        });
+    }, []);
 
     const handlePressLatestSort = useCallback(() => {
         setSortDirection(current => (current === "desc" ? "asc" : "desc"));
@@ -142,6 +177,7 @@ export const OrganizationScoreSendModal = ({
         }
 
         setSendingScoreId(score.id);
+        registerRecentScore(score);
 
         try {
             await sendOrganizationScoreToGroup({
@@ -155,6 +191,41 @@ export const OrganizationScoreSendModal = ({
         } finally {
             setSendingScoreId(null);
         }
+    };
+
+    const renderQuickAccessGroup = (title: string, quickScores: tScoreSummary[]) => {
+        if (quickScores.length === 0) {
+            return null;
+        }
+
+        return (
+            <View style={styles.quickAccessGroup}>
+                <DefaultText Button2 weight="800" color={theme.gray2}>
+                    {title}
+                </DefaultText>
+                <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
+                    contentContainerStyle={styles.quickScoreList}
+                >
+                    {quickScores.map(score => (
+                        <Pressable
+                            key={`${title}-${score.id}`}
+                            onPress={() => handleSendScore(score)}
+                            style={[styles.quickScoreChip, { borderColor: theme.primaryLight, backgroundColor: theme.white }]}
+                        >
+                            <DefaultText Button3 weight="800" color={theme.gray2} numberOfLines={1}>
+                                {score.title}
+                            </DefaultText>
+                            <DefaultText Button3 color={theme.gray5} numberOfLines={1}>
+                                {score.singer || score.code ? `${score.singer} · ${score.code}` : "악보"}
+                            </DefaultText>
+                        </Pressable>
+                    ))}
+                </ScrollView>
+            </View>
+        );
     };
 
     const renderHeader = () => (
@@ -183,6 +254,8 @@ export const OrganizationScoreSendModal = ({
                             onChangeText={value => setDraftFilters(current => ({ ...current, title: value }))}
                             placeholder={COPY.titlePlaceholder}
                             placeholderTextColor={theme.gray7}
+                            multiline={false}
+                            numberOfLines={1}
                             style={[styles.searchInput, { color: theme.gray2 }]}
                             returnKeyType="search"
                             onSubmitEditing={applySearch}
@@ -214,7 +287,11 @@ export const OrganizationScoreSendModal = ({
                                 onChangeText={value => setDraftFilters(current => ({ ...current, singer: value }))}
                                 placeholder={COPY.singerPlaceholder}
                                 placeholderTextColor={theme.gray7}
+                                multiline={false}
+                                numberOfLines={1}
                                 style={[styles.filterInput, { color: theme.gray2 }]}
+                                returnKeyType="search"
+                                onSubmitEditing={applySearch}
                             />
                         </View>
                     </View>
@@ -229,6 +306,24 @@ export const OrganizationScoreSendModal = ({
                         </DefaultText>
                     </Pressable>
                 </View>
+                {hasAppliedFilters && (
+                    <View style={[styles.activeFilterRow, { backgroundColor: theme.gray8 }]}>
+                        <DefaultText Button3 color={theme.gray4}>
+                            검색 조건 {activeFilterCount}개 적용 중
+                        </DefaultText>
+                        <Pressable onPress={resetSearch} style={styles.resetFilterButton}>
+                            <DefaultText Button3 weight="800" color={theme.primary}>
+                                초기화
+                            </DefaultText>
+                        </Pressable>
+                    </View>
+                )}
+                {hasQuickAccess && (
+                    <View style={[styles.quickAccessSection, { backgroundColor: theme.gray8 }]}>
+                        {renderQuickAccessGroup(COPY.favoriteScores, favoritePreviewScores)}
+                        {renderQuickAccessGroup(COPY.recentScores, recentPreviewScores)}
+                    </View>
+                )}
             </View>
         </View>
     );
@@ -236,69 +331,74 @@ export const OrganizationScoreSendModal = ({
     return (
         <Modal visible={visible} animationType="slide" presentationStyle="fullScreen" onRequestClose={onClose}>
             <SafeAreaView edges={["top", "left", "right", "bottom"]} style={[styles.container, { backgroundColor: theme.white }]}>
-                {isLoadingOrganizationScoreList && scores.length === 0 ? (
-                    <View style={styles.loadingContainer}>
-                        <ActivityIndicator size="large" color={theme.primary} />
-                        <DefaultText Body2 color={theme.gray5}>
-                            {COPY.loading}
-                        </DefaultText>
-                    </View>
-                ) : (
-                    <FlatList
-                        ref={listRef}
-                        data={scores}
-                        key={columnCount === 3 ? "send-score-grid-3" : "send-score-grid-2"}
-                        numColumns={columnCount}
-                        keyExtractor={item => `send-score-${item.id}`}
-                        ListHeaderComponentStyle={styles.listHeader}
-                        columnWrapperStyle={styles.gridRow}
-                        contentContainerStyle={styles.listContent}
-                        ListHeaderComponent={renderHeader()}
-                        renderItem={({ item }) => (
-                            <View style={[styles.cardColumn, { width: cardWidth }]}>
-                                <OrganizationScoreCard
-                                    title={item.title}
-                                    singer={item.singer}
-                                    code={item.code}
-                                    thumbnail={item.thumbnail}
-                                    onPress={() => handleSendScore(item)}
-                                />
-                                {sendingScoreId === item.id && (
-                                    <View style={styles.cardLoadingOverlay}>
-                                        <ActivityIndicator color={theme.white} />
-                                    </View>
-                                )}
-                            </View>
-                        )}
-                        onEndReached={() => {
-                            if (hasNextOrganizationScoreList) {
-                                nextOrganizationScoreList();
+                <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.flex}>
+                    {isLoadingOrganizationScoreList && scores.length === 0 ? (
+                        <View style={styles.loadingContainer}>
+                            <ActivityIndicator size="large" color={theme.primary} />
+                            <DefaultText Body2 color={theme.gray5}>
+                                {COPY.loading}
+                            </DefaultText>
+                        </View>
+                    ) : (
+                        <FlatList
+                            ref={listRef}
+                            automaticallyAdjustKeyboardInsets
+                            data={scores}
+                            key={columnCount === 3 ? "send-score-grid-3" : "send-score-grid-2"}
+                            numColumns={columnCount}
+                            keyExtractor={item => `send-score-${item.id}`}
+                            ListHeaderComponentStyle={styles.listHeader}
+                            columnWrapperStyle={styles.gridRow}
+                            contentContainerStyle={styles.listContent}
+                            ListHeaderComponent={renderHeader()}
+                            renderItem={({ item }) => (
+                                <View style={[styles.cardColumn, { width: cardWidth }]}>
+                                    <OrganizationScoreCard
+                                        title={item.title}
+                                        singer={item.singer}
+                                        code={item.code}
+                                        thumbnail={item.thumbnail}
+                                        onPress={() => handleSendScore(item)}
+                                        isFavorite={isFavoriteScore(item.id)}
+                                        onPressFavorite={() => toggleFavoriteScore(item)}
+                                    />
+                                    {sendingScoreId === item.id && (
+                                        <View style={styles.cardLoadingOverlay}>
+                                            <ActivityIndicator color={theme.white} />
+                                        </View>
+                                    )}
+                                </View>
+                            )}
+                            onEndReached={() => {
+                                if (hasNextOrganizationScoreList) {
+                                    nextOrganizationScoreList();
+                                }
+                            }}
+                            onEndReachedThreshold={0.3}
+                            refreshing={isRefreshingOrganizationScoreList}
+                            onRefresh={() => {
+                                void refetchOrganizationScoreList();
+                            }}
+                            keyboardShouldPersistTaps="handled"
+                            ListEmptyComponent={
+                                <View style={styles.emptyContainer}>
+                                    <DefaultText Body2 color={theme.gray5}>
+                                        {missingOrganization
+                                            ? COPY.missingOrganization
+                                            : appliedFilters.title || appliedFilters.code || appliedFilters.singer
+                                              ? COPY.emptySearch
+                                              : COPY.empty}
+                                    </DefaultText>
+                                </View>
                             }
-                        }}
-                        onEndReachedThreshold={0.3}
-                        refreshing={isRefreshingOrganizationScoreList}
-                        onRefresh={() => {
-                            void refetchOrganizationScoreList();
-                        }}
-                        keyboardShouldPersistTaps="handled"
-                        ListEmptyComponent={
-                            <View style={styles.emptyContainer}>
-                                <DefaultText Body2 color={theme.gray5}>
-                                    {missingOrganization
-                                        ? COPY.missingOrganization
-                                        : appliedFilters.title || appliedFilters.code || appliedFilters.singer
-                                          ? COPY.emptySearch
-                                          : COPY.empty}
-                                </DefaultText>
-                            </View>
-                        }
-                        ListFooterComponent={
-                            isFetchingNextOrganizationScoreList ? (
-                                <ActivityIndicator size="small" color={theme.primary} />
-                            ) : null
-                        }
-                    />
-                )}
+                            ListFooterComponent={
+                                isFetchingNextOrganizationScoreList ? (
+                                    <ActivityIndicator size="small" color={theme.primary} />
+                                ) : null
+                            }
+                        />
+                    )}
+                </KeyboardAvoidingView>
             </SafeAreaView>
         </Modal>
     );
@@ -306,6 +406,9 @@ export const OrganizationScoreSendModal = ({
 
 const styles = StyleSheet.create({
     container: {
+        flex: 1
+    },
+    flex: {
         flex: 1
     },
     loadingContainer: {
@@ -421,6 +524,44 @@ const styles = StyleSheet.create({
         borderRadius: FlipStyles.adjustScale(999),
         paddingHorizontal: FlipStyles.adjustScale(10),
         justifyContent: "center"
+    },
+    activeFilterRow: {
+        minHeight: FlipStyles.adjustScale(34),
+        borderRadius: FlipStyles.adjustScale(999),
+        paddingLeft: FlipStyles.adjustScale(12),
+        paddingRight: FlipStyles.adjustScale(6),
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: FlipStyles.adjustScale(8)
+    },
+    resetFilterButton: {
+        minHeight: FlipStyles.adjustScale(28),
+        justifyContent: "center",
+        paddingHorizontal: FlipStyles.adjustScale(8)
+    },
+    quickAccessSection: {
+        borderRadius: FlipStyles.adjustScale(16),
+        paddingVertical: FlipStyles.adjustScale(12),
+        gap: FlipStyles.adjustScale(12)
+    },
+    quickAccessGroup: {
+        gap: FlipStyles.adjustScale(8),
+        paddingLeft: FlipStyles.adjustScale(12)
+    },
+    quickScoreList: {
+        gap: FlipStyles.adjustScale(8),
+        paddingRight: FlipStyles.adjustScale(12)
+    },
+    quickScoreChip: {
+        width: FlipStyles.adjustScale(152),
+        minHeight: FlipStyles.adjustScale(58),
+        borderWidth: 1,
+        borderRadius: FlipStyles.adjustScale(14),
+        paddingHorizontal: FlipStyles.adjustScale(12),
+        paddingVertical: FlipStyles.adjustScale(9),
+        justifyContent: "center",
+        gap: FlipStyles.adjustScale(3)
     },
     listContent: {
         paddingBottom: FlipStyles.adjustScale(32),

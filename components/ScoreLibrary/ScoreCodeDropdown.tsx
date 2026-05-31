@@ -81,7 +81,7 @@ export const ScoreCodeDropdown = ({
                     triggerStyle
                 ]}
             >
-                <DefaultText Button2 color={selectedLabel ? theme.gray2 : theme.gray5}>
+                <DefaultText Button2 color={selectedLabel ? theme.gray2 : theme.gray5} numberOfLines={1}>
                     {selectedLabel || placeholder}
                 </DefaultText>
                 <DefaultText
@@ -110,6 +110,8 @@ export const ScoreCodeDropdown = ({
                             onChangeText={setQuery}
                             placeholder={searchPlaceholder}
                             placeholderTextColor={theme.gray5}
+                            multiline={false}
+                            numberOfLines={1}
                             style={[styles.searchInput, { color: theme.gray2 }]}
                         />
                         <DefaultText Button3 color={theme.gray5}>

@@ -18,7 +18,7 @@ const getCurrentPlatform = (): AppVersionPlatform => (Platform.OS === "ios" ? "i
 export const getAppVersionPolicy = async (platform: AppVersionPlatform = getCurrentPlatform()) => {
   const response = await apiRequest<AppVersionPolicy>(
     `/app/version-policy?platform=${encodeURIComponent(platform)}`,
-    { method: "GET" }
+    { method: "GET", skipAuthRefresh: true }
   );
 
   if (!response.data) {

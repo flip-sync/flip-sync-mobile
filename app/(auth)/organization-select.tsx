@@ -43,6 +43,7 @@ const COPY = {
   noOrganizations:
     "아직 참여 중인 소속이 없습니다. 아래에서 새 소속을 만들거나 초대 코드로 참여해 주세요.",
   currentSelection: "현재 선택",
+  roleLabel: (isLeader: boolean) => (isLeader ? "소속장" : "멤버"),
   organizationMeta: (creatorName: string, memberCount: number) =>
     `소속장 ${creatorName} · 구성원 ${memberCount}명`,
   inviteCodeLabel: (inviteCode: string) => `초대 코드 ${inviteCode}`,
@@ -233,10 +234,11 @@ export default function OrganizationSelectScreen() {
   return (
     <SafeAreaView style={[styles.safeArea, { backgroundColor: theme.gray8 }]}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.flex}
       >
         <ScrollView
+          automaticallyAdjustKeyboardInsets
           contentContainerStyle={[styles.scrollContent, isAddMode ? styles.compactScrollContent : null]}
           keyboardShouldPersistTaps="handled"
           scrollEnabled
@@ -318,11 +320,30 @@ export default function OrganizationSelectScreen() {
                           <DefaultText Body1 weight="700" color={theme.gray2}>
                             {organization.name}
                           </DefaultText>
-                          {isActive && (
-                            <DefaultText Button3 weight="700" color={theme.primary}>
-                              {COPY.currentSelection}
-                            </DefaultText>
-                          )}
+                          <View style={styles.organizationBadgeGroup}>
+                            <View
+                              style={[
+                                styles.roleBadge,
+                                {
+                                  backgroundColor: organization.isLeader ? theme.primaryLight : theme.gray8,
+                                  borderColor: organization.isLeader ? theme.primary : theme.gray7
+                                }
+                              ]}
+                            >
+                              <DefaultText
+                                Button3
+                                weight="800"
+                                color={organization.isLeader ? theme.primary : theme.gray4}
+                              >
+                                {COPY.roleLabel(organization.isLeader)}
+                              </DefaultText>
+                            </View>
+                            {isActive && (
+                              <DefaultText Button3 weight="700" color={theme.primary}>
+                                {COPY.currentSelection}
+                              </DefaultText>
+                            )}
+                          </View>
                         </View>
                         <DefaultText Button3 color={theme.gray5}>
                           {COPY.organizationMeta(organization.creatorName, organization.memberCount)}
@@ -432,11 +453,13 @@ const styles = StyleSheet.create({
   scrollContent: {
     flexGrow: 1,
     paddingHorizontal: FlipStyles.basePadding,
-    paddingVertical: FlipStyles.adjustScale(24)
+    paddingTop: FlipStyles.adjustScale(24),
+    paddingBottom: FlipStyles.adjustScale(96)
   },
   compactScrollContent: {
     justifyContent: "center",
-    paddingVertical: FlipStyles.adjustScale(18)
+    paddingTop: FlipStyles.adjustScale(18),
+    paddingBottom: FlipStyles.adjustScale(96)
   },
   card: {
     borderRadius: FlipStyles.adjustScale(28),
@@ -516,6 +539,19 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
     gap: FlipStyles.adjustScale(12)
+  },
+  organizationBadgeGroup: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: FlipStyles.adjustScale(6)
+  },
+  roleBadge: {
+    minHeight: FlipStyles.adjustScale(24),
+    borderWidth: 1,
+    borderRadius: FlipStyles.adjustScale(999),
+    alignItems: "center",
+    justifyContent: "center",
+    paddingHorizontal: FlipStyles.adjustScale(8)
   },
   fieldGap: {
     marginBottom: FlipStyles.adjustScale(4)

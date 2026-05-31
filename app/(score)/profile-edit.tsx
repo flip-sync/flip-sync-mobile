@@ -14,7 +14,7 @@ import {
     View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { clearAuthSession, useFlipTheme } from "@/common";
+import { removeAuthSession, useFlipTheme } from "@/common";
 import ProfileAvatar from "@/components/base/imgs/ProfileAvatar";
 import FlipIcon from "@/components/base/imgs/FlipIcon";
 import DefaultText from "@/components/base/Text";
@@ -138,8 +138,7 @@ export default function ProfileEditScreen() {
                 text: COPY.logout,
                 style: "destructive",
                 onPress: async () => {
-                    await AsyncStorage.removeItem("token");
-                    clearAuthSession();
+                    await removeAuthSession();
                     queryClient.clear();
                     router.replace("/(auth)");
                 }
@@ -171,8 +170,12 @@ export default function ProfileEditScreen() {
                 }}
             />
 
-            <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.flex}>
-                <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+            <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.flex}>
+                <ScrollView
+                    automaticallyAdjustKeyboardInsets
+                    contentContainerStyle={styles.scrollContent}
+                    keyboardShouldPersistTaps="handled"
+                >
                     <View style={styles.avatarSection}>
                         <View style={styles.avatarFrame}>
                             <ProfileAvatar uri={profileData?.profileImageUrl} size={FlipStyles.adjustScale(88)} />
@@ -263,7 +266,7 @@ const styles = StyleSheet.create({
     scrollContent: {
         paddingHorizontal: FlipStyles.adjustScale(24),
         paddingTop: FlipStyles.adjustScale(18),
-        paddingBottom: FlipStyles.adjustScale(32)
+        paddingBottom: FlipStyles.adjustScale(96)
     },
     avatarSection: {
         alignItems: "center",

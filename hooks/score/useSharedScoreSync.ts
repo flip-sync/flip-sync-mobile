@@ -1,7 +1,6 @@
-﻿import { getAuthSession } from "@/common";
-import { getApiBaseUrl } from "@/common/api/client";
+﻿import { getStoredAuthSession } from "@/common";
+import { getApiBaseUrl, refreshAccessToken } from "@/common/api/client";
 import { tConnectedRoomMember, tSharedScoreViewMessage } from "@/api/score/types";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 const HEARTBEAT_INTERVAL_MS = 15000;
@@ -12,21 +11,17 @@ const RECONNECT_MAX_DELAY_MS = 8000;
 const getRealtimeBaseUrl = () => getApiBaseUrl().replace(/^http/i, protocol => (protocol === "https" ? "wss" : "ws"));
 
 const getStoredAccessToken = async () => {
-    const currentSession = getAuthSession();
-    if (currentSession?.accessToken) {
-        return currentSession.accessToken;
-    }
-
-    const rawSession = await AsyncStorage.getItem("token");
-    if (!rawSession) {
+    const session = await getStoredAuthSession();
+    if (!session?.accessToken) {
         return null;
     }
 
     try {
-        const parsedSession = JSON.parse(rawSession) as { accessToken?: string };
-        return parsedSession.accessToken ?? null;
+        const refreshedSession = await refreshAccessToken();
+        return refreshedSession.accessToken;
     } catch {
-        return null;
+        const latestSession = await getStoredAuthSession();
+        return latestSession?.accessToken ?? null;
     }
 };
 

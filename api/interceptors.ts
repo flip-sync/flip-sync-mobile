@@ -1,26 +1,18 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import axios, { AxiosError, AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from "axios";
+import { AxiosError, AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from "axios";
 import { reloadAppAsync } from "expo";
 import { ACTIVE_ORGANIZATION_STORAGE_KEY } from "@/common/api/organization-session";
-import { clearAuthSession, setAuthSession } from "@/common/api/session";
-import { getApiBaseUrl } from "@/common/api/client";
-import type { CommonResDto, TokenResDto } from "@/common/api/types";
+import { getStoredAuthSession, removeAuthSession } from "@/common/api/session";
+import { refreshAccessToken } from "@/common/api/client";
 
 type tApiError = {
     code: string;
     message: string;
 };
 
-type StoredToken = {
-    accessToken?: string;
-    refreshToken?: string;
-};
-
 type RetriableRequestConfig = InternalAxiosRequestConfig & {
     _retry?: boolean;
 };
-
-let refreshTokenPromise: Promise<TokenResDto> | null = null;
 
 const getAuthorizationHeader = (accessToken?: string) => {
     if (!accessToken) {
@@ -30,65 +22,13 @@ const getAuthorizationHeader = (accessToken?: string) => {
     return accessToken.startsWith("Bearer ") ? accessToken : `Bearer ${accessToken}`;
 };
 
-const getStoredToken = async () => {
-    const token = await AsyncStorage.getItem("token");
-    if (!token) {
-        return null;
-    }
-
-    try {
-        return JSON.parse(token) as StoredToken;
-    } catch (error) {
-        console.warn("Failed to parse stored auth token.", error);
-        return null;
-    }
-};
-
-const persistToken = async (token: TokenResDto) => {
-    await AsyncStorage.setItem("token", JSON.stringify(token));
-    setAuthSession(token);
-};
-
 const clearSessionAndReload = async () => {
-    await AsyncStorage.removeItem("token");
-    clearAuthSession();
+    await removeAuthSession();
     await reloadAppAsync();
 };
 
-const refreshAccessToken = async () => {
-    if (refreshTokenPromise) {
-        return refreshTokenPromise;
-    }
-
-    refreshTokenPromise = (async () => {
-        const tokenData = await getStoredToken();
-        if (!tokenData?.refreshToken) {
-            throw new Error("Missing refresh token");
-        }
-
-        const response = await axios.post<CommonResDto<TokenResDto>>(
-            `${getApiBaseUrl()}/user/login/refresh`,
-            {
-                refreshToken: tokenData.refreshToken
-            }
-        );
-        const nextToken = response.data.data;
-
-        if (!nextToken?.accessToken || !nextToken.refreshToken) {
-            throw new Error("Invalid refresh response");
-        }
-
-        await persistToken(nextToken);
-        return nextToken;
-    })().finally(() => {
-        refreshTokenPromise = null;
-    });
-
-    return refreshTokenPromise;
-};
-
 const onRequest = async (config: InternalAxiosRequestConfig): Promise<InternalAxiosRequestConfig> => {
-    const tokenData = await getStoredToken();
+    const tokenData = await getStoredAuthSession();
     const authorizationHeader = getAuthorizationHeader(tokenData?.accessToken);
 
     if (authorizationHeader) {

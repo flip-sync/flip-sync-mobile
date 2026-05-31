@@ -9,13 +9,25 @@ import DefaultText from "@/components/base/Text";
 import { OrganizationScoreCard } from "@/components/ScoreLibrary/OrganizationScoreCard";
 import { ScoreCodeDropdown } from "@/components/ScoreLibrary/ScoreCodeDropdown";
 import { ScoreViewerModal } from "@/components/ScoreRoom/ScoreViewerModal";
-import { useOrganizationScoreDetail, useOrganizationScoreLibrary } from "@/hooks/score";
+import { useOrganizationScoreDetail, useOrganizationScoreLibrary, useOrganizationScoreQuickAccess } from "@/hooks/score";
 import { useCheckDevice } from "@/hooks/useCheckDevice";
 import { useUserProfile } from "@/hooks/user";
 import FlipStyles from "@/styles";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Alert, FlatList, Pressable, StyleSheet, TextInput, View, useWindowDimensions } from "react-native";
+import {
+    ActivityIndicator,
+    Alert,
+    FlatList,
+    KeyboardAvoidingView,
+    Platform,
+    Pressable,
+    ScrollView,
+    StyleSheet,
+    TextInput,
+    View,
+    useWindowDimensions
+} from "react-native";
 
 const COPY = {
     warehouseTitle: "악보 창고",
@@ -42,7 +54,9 @@ const COPY = {
     deleteFailed: "악보 삭제에 실패했습니다.",
     loading: "악보를 불러오는 중입니다.",
     missingOrganization: "활성 소속이 없어 악보 창고를 불러오지 못했습니다.",
-    selectOrganization: "소속 선택하기"
+    selectOrganization: "소속 선택하기",
+    favoriteScores: "즐겨찾기",
+    recentScores: "최근 사용"
 } as const;
 
 type SearchFilters = {
@@ -88,6 +102,13 @@ export default function OrganizationScoreLibraryScreen() {
     const [viewerPageIndex, setViewerPageIndex] = useState(0);
     const [sortDirection, setSortDirection] = useState<tSortDirection>("desc");
     const listRef = useRef<FlatList<tScoreSummary>>(null);
+    const activeFilterCount = useMemo(
+        () => Object.values(appliedFilters).filter(value => value.trim().length > 0).length,
+        [appliedFilters]
+    );
+    const hasAppliedFilters = activeFilterCount > 0;
+    const { favoriteScores, recentScores, isFavoriteScore, toggleFavoriteScore, registerRecentScore } =
+        useOrganizationScoreQuickAccess();
 
     const {
         organizationScoreList,
@@ -119,6 +140,12 @@ export default function OrganizationScoreLibraryScreen() {
         [organizationScoreList?.pages, sortDirection]
     );
     const sortLabel = sortDirection === "desc" ? COPY.latest : COPY.oldest;
+    const favoritePreviewScores = useMemo(() => favoriteScores.slice(0, 8), [favoriteScores]);
+    const recentPreviewScores = useMemo(
+        () => recentScores.filter(score => !isFavoriteScore(score.id)).slice(0, 8),
+        [isFavoriteScore, recentScores]
+    );
+    const hasQuickAccess = !hasAppliedFilters && (favoritePreviewScores.length > 0 || recentPreviewScores.length > 0);
     const columnCount = isTablet ? 3 : 2;
     const gridGap = FlipStyles.adjustScale(12);
     const cardWidth = useMemo(() => {
@@ -127,13 +154,30 @@ export default function OrganizationScoreLibraryScreen() {
         return Math.floor((width - horizontalPadding - totalGap) / columnCount);
     }, [columnCount, gridGap, width]);
 
-    const applySearch = () => {
+    const applySearch = useCallback(() => {
         setAppliedFilters({
             title: draftFilters.title.trim(),
             singer: draftFilters.singer.trim(),
             code: draftFilters.code.trim()
         });
-    };
+        requestAnimationFrame(() => {
+            listRef.current?.scrollToOffset({
+                offset: 0,
+                animated: true
+            });
+        });
+    }, [draftFilters.code, draftFilters.singer, draftFilters.title]);
+
+    const resetSearch = useCallback(() => {
+        setDraftFilters(DEFAULT_FILTERS);
+        setAppliedFilters(DEFAULT_FILTERS);
+        requestAnimationFrame(() => {
+            listRef.current?.scrollToOffset({
+                offset: 0,
+                animated: true
+            });
+        });
+    }, []);
 
     const handlePressLatestSort = useCallback(() => {
         setSortDirection(current => (current === "desc" ? "asc" : "desc"));
@@ -160,6 +204,8 @@ export default function OrganizationScoreLibraryScreen() {
     };
 
     const handlePressScore = (score: tScoreSummary) => {
+        registerRecentScore(score);
+
         if (sendMode && hasTargetRoom) {
             Alert.alert(COPY.sendingTitle, COPY.sendingMessage(score.title), [
                 {
@@ -188,6 +234,41 @@ export default function OrganizationScoreLibraryScreen() {
 
         setSelectedScoreId(score.id);
         setViewerPageIndex(0);
+    };
+
+    const renderQuickAccessGroup = (title: string, quickScores: tScoreSummary[]) => {
+        if (quickScores.length === 0) {
+            return null;
+        }
+
+        return (
+            <View style={styles.quickAccessGroup}>
+                <DefaultText Button2 weight="800" color={theme.gray2}>
+                    {title}
+                </DefaultText>
+                <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
+                    contentContainerStyle={styles.quickScoreList}
+                >
+                    {quickScores.map(score => (
+                        <Pressable
+                            key={`${title}-${score.id}`}
+                            onPress={() => handlePressScore(score)}
+                            style={[styles.quickScoreChip, { borderColor: theme.primaryLight, backgroundColor: theme.white }]}
+                        >
+                            <DefaultText Button3 weight="800" color={theme.gray2} numberOfLines={1}>
+                                {score.title}
+                            </DefaultText>
+                            <DefaultText Button3 color={theme.gray5} numberOfLines={1}>
+                                {score.singer || score.code ? `${score.singer} · ${score.code}` : "악보"}
+                            </DefaultText>
+                        </Pressable>
+                    ))}
+                </ScrollView>
+            </View>
+        );
     };
 
     const handleDeleteScore = (score: tScoreSummary) => {
@@ -235,6 +316,8 @@ export default function OrganizationScoreLibraryScreen() {
                             onChangeText={value => setDraftFilters(current => ({ ...current, title: value }))}
                             placeholder={COPY.titlePlaceholder}
                             placeholderTextColor={theme.gray7}
+                            multiline={false}
+                            numberOfLines={1}
                             style={[styles.searchInput, { color: theme.gray2 }]}
                             returnKeyType="search"
                             onSubmitEditing={applySearch}
@@ -262,12 +345,16 @@ export default function OrganizationScoreLibraryScreen() {
                         />
                         <View style={[styles.filterField, { borderColor: theme.gray7, backgroundColor: theme.white }]}> 
                             <TextInput
-                                value={draftFilters.singer}
-                                onChangeText={value => setDraftFilters(current => ({ ...current, singer: value }))}
-                                placeholder={COPY.singerPlaceholder}
-                                placeholderTextColor={theme.gray7}
-                                style={[styles.filterInput, { color: theme.gray2 }]}
-                            />
+                            value={draftFilters.singer}
+                            onChangeText={value => setDraftFilters(current => ({ ...current, singer: value }))}
+                            placeholder={COPY.singerPlaceholder}
+                            placeholderTextColor={theme.gray7}
+                            multiline={false}
+                            numberOfLines={1}
+                            style={[styles.filterInput, { color: theme.gray2 }]}
+                            returnKeyType="search"
+                            onSubmitEditing={applySearch}
+                        />
                         </View>
                     </View>
 
@@ -281,12 +368,30 @@ export default function OrganizationScoreLibraryScreen() {
                         </DefaultText>
                     </Pressable>
                 </View>
+                {hasAppliedFilters && (
+                    <View style={[styles.activeFilterRow, { backgroundColor: theme.gray8 }]}>
+                        <DefaultText Button3 color={theme.gray4}>
+                            검색 조건 {activeFilterCount}개 적용 중
+                        </DefaultText>
+                        <Pressable onPress={resetSearch} style={styles.resetFilterButton}>
+                            <DefaultText Button3 weight="800" color={theme.primary}>
+                                초기화
+                            </DefaultText>
+                        </Pressable>
+                    </View>
+                )}
+                {hasQuickAccess && (
+                    <View style={[styles.quickAccessSection, { backgroundColor: theme.gray8 }]}>
+                        {renderQuickAccessGroup(COPY.favoriteScores, favoritePreviewScores)}
+                        {renderQuickAccessGroup(COPY.recentScores, recentPreviewScores)}
+                    </View>
+                )}
             </View>
         </View>
     );
 
     return (
-        <View style={[styles.container, { backgroundColor: theme.white }]}>
+        <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={[styles.container, { backgroundColor: theme.white }]}>
             {isLoadingOrganizationScoreList && scores.length === 0 ? (
                 <View style={styles.loadingContainer}>
                     <ActivityIndicator size="large" color={theme.primary} />
@@ -297,6 +402,7 @@ export default function OrganizationScoreLibraryScreen() {
             ) : (
                 <FlatList
                     ref={listRef}
+                    automaticallyAdjustKeyboardInsets
                     data={scores}
                     key={columnCount === 3 ? "organization-score-grid-3" : "organization-score-grid-2"}
                     numColumns={columnCount}
@@ -316,6 +422,8 @@ export default function OrganizationScoreLibraryScreen() {
                                 onPress={() => handlePressScore(item)}
                                 canDelete={!sendMode && profile?.data.id === item.uploadedUserId}
                                 onPressDelete={() => handleDeleteScore(item)}
+                                isFavorite={isFavoriteScore(item.id)}
+                                onPressFavorite={() => toggleFavoriteScore(item)}
                             />
                         </View>
                     )}
@@ -378,7 +486,7 @@ export default function OrganizationScoreLibraryScreen() {
                     <ActivityIndicator size="large" color={theme.white} />
                 </View>
             )}
-        </View>
+        </KeyboardAvoidingView>
     );
 }
 
@@ -481,6 +589,44 @@ const styles = StyleSheet.create({
         borderRadius: FlipStyles.adjustScale(999),
         paddingHorizontal: FlipStyles.adjustScale(10),
         justifyContent: "center"
+    },
+    activeFilterRow: {
+        minHeight: FlipStyles.adjustScale(34),
+        borderRadius: FlipStyles.adjustScale(999),
+        paddingLeft: FlipStyles.adjustScale(12),
+        paddingRight: FlipStyles.adjustScale(6),
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: FlipStyles.adjustScale(8)
+    },
+    resetFilterButton: {
+        minHeight: FlipStyles.adjustScale(28),
+        justifyContent: "center",
+        paddingHorizontal: FlipStyles.adjustScale(8)
+    },
+    quickAccessSection: {
+        borderRadius: FlipStyles.adjustScale(16),
+        paddingVertical: FlipStyles.adjustScale(12),
+        gap: FlipStyles.adjustScale(12)
+    },
+    quickAccessGroup: {
+        gap: FlipStyles.adjustScale(8),
+        paddingLeft: FlipStyles.adjustScale(12)
+    },
+    quickScoreList: {
+        gap: FlipStyles.adjustScale(8),
+        paddingRight: FlipStyles.adjustScale(12)
+    },
+    quickScoreChip: {
+        width: FlipStyles.adjustScale(152),
+        minHeight: FlipStyles.adjustScale(58),
+        borderWidth: 1,
+        borderRadius: FlipStyles.adjustScale(14),
+        paddingHorizontal: FlipStyles.adjustScale(12),
+        paddingVertical: FlipStyles.adjustScale(9),
+        justifyContent: "center",
+        gap: FlipStyles.adjustScale(3)
     },
     listContent: {
         paddingBottom: FlipStyles.adjustScale(96),

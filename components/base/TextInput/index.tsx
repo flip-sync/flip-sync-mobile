@@ -21,6 +21,8 @@ const DefaultInput = memo(
 const styles = StyleSheet.create({
     textInput: {
         flex: 1,
+        minWidth: 0,
+        flexShrink: 1,
         padding: 0,
         margin: 0,
         fontFamily: "Pretendard-Medium"

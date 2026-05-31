@@ -1,8 +1,7 @@
 ﻿import { roomApi } from "@/api/room";
-import { getAuthSession, persistActiveOrganizationSession } from "@/common";
+import { getStoredAuthSession, persistActiveOrganizationSession } from "@/common";
 import DefaultText from "@/components/base/Text";
 import FlipStyles from "@/styles";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { isAxiosError } from "axios";
 import * as Linking from "expo-linking";
 import { useLocalSearchParams, useRouter } from "expo-router";
@@ -10,22 +9,8 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, Platform, Pressable, StyleSheet, View } from "react-native";
 
 const getStoredAccessToken = async () => {
-    const session = getAuthSession();
-    if (session?.accessToken) {
-        return session.accessToken;
-    }
-
-    const rawSession = await AsyncStorage.getItem("token");
-    if (!rawSession) {
-        return null;
-    }
-
-    try {
-        const parsedSession = JSON.parse(rawSession) as { accessToken?: string };
-        return parsedSession.accessToken ?? null;
-    } catch {
-        return null;
-    }
+    const session = await getStoredAuthSession();
+    return session?.accessToken ?? null;
 };
 
 export default function InviteEntry() {

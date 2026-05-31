@@ -211,11 +211,13 @@ export default function Room() {
         }
 
         if (!lastSharedScoreMessage.active || !lastSharedScoreMessage.scoreId) {
+            const shouldCloseLocalSharedViewer = sharedModeActive || isJoinedSharedView;
+
             isClosingSharedViewRef.current = true;
             setSharedScoreSession(null);
             setIsJoinedSharedView(false);
             setSharedModeActive(false);
-            if (sharedModeActive) {
+            if (shouldCloseLocalSharedViewer) {
                 setSelectedScoreId(null);
                 setViewerPageIndex(0);
             }

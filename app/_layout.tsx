@@ -21,8 +21,8 @@ import {
   clearAuthSession,
   getActiveOrganizationSession,
   getAuthSession,
+  getStoredAuthSession,
   setActiveOrganizationSession,
-  setAuthSession,
   subscribeActiveOrganizationSession,
   subscribeAuthSession,
   TokenResDto
@@ -84,21 +84,8 @@ export default function RootLayout() {
 
   useEffect(() => {
     const hydrateToken = async () => {
-      const storedToken = await AsyncStorage.getItem("token");
-
-      if (storedToken) {
-        try {
-          const parsedToken = JSON.parse(storedToken) as TokenResDto;
-
-          if (parsedToken.accessToken) {
-            setAuthSession(parsedToken);
-          } else {
-            clearAuthSession();
-          }
-        } catch {
-          clearAuthSession();
-        }
-      } else {
+      const storedToken = await getStoredAuthSession();
+      if (!storedToken) {
         clearAuthSession();
       }
 

@@ -8,7 +8,7 @@ import { tRoom } from "@/api/room";
 import {
     ACTIVE_ORGANIZATION_STORAGE_KEY,
     clearActiveOrganizationSession,
-    clearAuthSession,
+    removeAuthSession,
     useActiveOrganizationSession,
     useFlipTheme
 } from "@/common";
@@ -77,9 +77,8 @@ export default function MyInfoScreen() {
                     setIsLoggingOut(true);
 
                     try {
-                        await AsyncStorage.removeItem("token");
+                        await removeAuthSession();
                         await AsyncStorage.removeItem(ACTIVE_ORGANIZATION_STORAGE_KEY);
-                        clearAuthSession();
                         clearActiveOrganizationSession();
                         queryClient.clear();
                         router.replace("/(auth)");

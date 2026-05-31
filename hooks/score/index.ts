@@ -3,6 +3,8 @@ import { tCreateOrganizationScore, tCreateScore, tSortDirection } from "@/api/sc
 import { useActiveOrganizationSession } from "@/common";
 import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
+export { useOrganizationScoreQuickAccess } from "./useOrganizationScoreQuickAccess";
+
 export const getScoreListQueryKey = (
     organizationId?: number | null,
     groupId?: number | null,

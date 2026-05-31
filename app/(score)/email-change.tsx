@@ -13,7 +13,7 @@ import {
     View
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { checkVerifyEmail, setAuthSession, useFlipTheme, verifyEmail } from "@/common";
+import { checkVerifyEmail, persistAuthSession, useFlipTheme, verifyEmail } from "@/common";
 import DefaultText from "@/components/base/Text";
 import FormTextInput from "@/components/base/TextInput/FormTextInput";
 import { useUserProfile } from "@/hooks/user";
@@ -156,8 +156,7 @@ export default function EmailChangeScreen() {
             const response = await updateEmail({
                 email: normalizedEmail
             });
-            await AsyncStorage.setItem("token", JSON.stringify(response.data));
-            setAuthSession(response.data);
+            await persistAuthSession(response.data);
             await queryClient.invalidateQueries({ queryKey: ["me"] });
             Alert.alert(COPY.emailUpdated);
             router.back();
@@ -185,8 +184,12 @@ export default function EmailChangeScreen() {
                 }}
             />
 
-            <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.flex}>
-                <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+            <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.flex}>
+                <ScrollView
+                    automaticallyAdjustKeyboardInsets
+                    contentContainerStyle={styles.scrollContent}
+                    keyboardShouldPersistTaps="handled"
+                >
                     <View style={styles.formSection}>
                         <FormTextInput
                             value={currentEmail}
@@ -261,7 +264,7 @@ const styles = StyleSheet.create({
     scrollContent: {
         paddingHorizontal: FlipStyles.adjustScale(24),
         paddingTop: FlipStyles.adjustScale(20),
-        paddingBottom: FlipStyles.adjustScale(32)
+        paddingBottom: FlipStyles.adjustScale(96)
     },
     formSection: {
         marginHorizontal: FlipStyles.adjustScale(10)
